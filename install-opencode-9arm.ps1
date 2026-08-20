@@ -18,11 +18,31 @@ param(
 
 $ErrorActionPreference = "Stop"
 
+function Convert-PSObjectToHashtable {
+    param($InputObject)
+    if ($InputObject -is [System.Management.Automation.PSCustomObject]) {
+        $h = @{}
+        foreach ($p in $InputObject.PSObject.Properties) { $h[$p.Name] = Convert-PSObjectToHashtable $p.Value }
+        return $h
+    }
+    if ($InputObject -is [System.Collections.IEnumerable] -and $InputObject -isnot [string]) {
+        return @($InputObject | ForEach-Object { Convert-PSObjectToHashtable $_ })
+    }
+    return $InputObject
+}
+
+function Read-JsonFileAsHashtable {
+    param([string]$Path)
+    $raw = Get-Content -Raw $Path
+    if ($PSVersionTable.PSVersion.Major -ge 6) { return $raw | ConvertFrom-Json -AsHashtable }
+    return Convert-PSObjectToHashtable ($raw | ConvertFrom-Json)
+}
+
 # --- shared token (single source of truth, created by install-claude-9arm.ps1) ---
 $PROFILE_DIR = Join-Path $env:USERPROFILE '.claude-9arm'
 $TOKEN_FILE  = Join-Path $PROFILE_DIR 'token'
 if (-not (Test-Path $TOKEN_FILE)) {
-    Write-Error 'ไม่พบ token file: ~\.claude-9arm\token - กรุณารัน install-claude-9arm.ps1 ก่อน (token มาจากเจ้าของ)'
+    Write-Host 'ไม่พบ token file: ~\.claude-9arm\token - กรุณารัน install-claude-9arm.ps1 ก่อน (token มาจากเจ้าของ)' -ForegroundColor Red
     exit 1
 }
 
@@ -56,7 +76,13 @@ $OC_FILE = Join-Path $OC_DIR 'opencode.json'
 # Preserve any existing config; add/update the "9arm" provider.
 $cfg = @{}
 if (Test-Path $OC_FILE) {
-    try { $cfg = Get-Content -Raw $OC_FILE | ConvertFrom-Json -AsHashtable } catch { $cfg = @{} }
+    try {
+        $cfg = Read-JsonFileAsHashtable $OC_FILE
+        if ($null -eq $cfg) { $cfg = @{} }
+    } catch {
+        Write-Host "อ่าน config เดิมไม่สำเร็จ จะเริ่มจาก config ว่าง: $OC_FILE" -ForegroundColor Yellow
+        $cfg = @{}
+    }
 }
 if (-not $cfg.ContainsKey('provider')) { $cfg['provider'] = @{} }
 $provider = $cfg['provider']
@@ -64,7 +90,7 @@ $provider['9arm'] = @{
     name    = '9arm Gateway'
     options = @{
         baseURL = 'https://gateway.9arm.co/v1'
-        apiKey  = "{file:$TOKEN_FILE}"
+        apiKey  = "{file:$($TOKEN_FILE -replace '\\', '/')}"
     }
     models  = @{
         'qwen3.8-27b-fp8'       = @{ name = 'Qwen 3.8 27b FP8' }
@@ -73,7 +99,7 @@ $provider['9arm'] = @{
 }
 # JSON ignores ordering of hashtable; ConvertFrom-Json -AsHashtable round-trips fine.
 $json = $cfg | ConvertTo-Json -Depth 20
-Set-Content -Path $OC_FILE -Value $json -Encoding utf8
+[System.IO.File]::WriteAllText($OC_FILE, $json, (New-Object System.Text.UTF8Encoding($false)))
 Write-Host "เขียน provider '9arm' ลง config: $OC_FILE" -ForegroundColor Green
 
 # --- 4. summary ---

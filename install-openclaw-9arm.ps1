@@ -12,10 +12,30 @@ param([switch]$SkipInstall)
 
 $ErrorActionPreference = "Stop"
 
+function Convert-PSObjectToHashtable {
+    param($InputObject)
+    if ($InputObject -is [System.Management.Automation.PSCustomObject]) {
+        $h = @{}
+        foreach ($p in $InputObject.PSObject.Properties) { $h[$p.Name] = Convert-PSObjectToHashtable $p.Value }
+        return $h
+    }
+    if ($InputObject -is [System.Collections.IEnumerable] -and $InputObject -isnot [string]) {
+        return @($InputObject | ForEach-Object { Convert-PSObjectToHashtable $_ })
+    }
+    return $InputObject
+}
+
+function Read-JsonFileAsHashtable {
+    param([string]$Path)
+    $raw = Get-Content -Raw $Path
+    if ($PSVersionTable.PSVersion.Major -ge 6) { return $raw | ConvertFrom-Json -AsHashtable }
+    return Convert-PSObjectToHashtable ($raw | ConvertFrom-Json)
+}
+
 $PROFILE_DIR = Join-Path $env:USERPROFILE '.claude-9arm'
 $TOKEN_FILE  = Join-Path $PROFILE_DIR 'token'
 if (-not (Test-Path $TOKEN_FILE)) {
-    Write-Error 'ไม่พบ token file: ~\.claude-9arm\token - กรุณารัน install-claude-9arm.ps1 ก่อน'
+    Write-Host 'ไม่พบ token file: ~\.claude-9arm\token - กรุณารัน install-claude-9arm.ps1 ก่อน' -ForegroundColor Red
     exit 1
 }
 $token = (Get-Content -Raw $TOKEN_FILE).Trim()
@@ -46,7 +66,13 @@ $OC_FILE = Join-Path $OC_DIR 'openclaw.json'
 # --- 3. merge provider ---
 $cfg = @{}
 if (Test-Path $OC_FILE) {
-    try { $cfg = Get-Content -Raw $OC_FILE | ConvertFrom-Json -AsHashtable } catch { $cfg = @{} }
+    try {
+        $cfg = Read-JsonFileAsHashtable $OC_FILE
+        if ($null -eq $cfg) { $cfg = @{} }
+    } catch {
+        Write-Host "อ่าน config เดิมไม่สำเร็จ จะเริ่มจาก config ว่าง: $OC_FILE" -ForegroundColor Yellow
+        $cfg = @{}
+    }
 }
 if (-not $cfg.ContainsKey('models')) { $cfg['models'] = @{} }
 $models = $cfg['models']
@@ -61,7 +87,7 @@ $models['providers']['9arm'] = @{
     )
 }
 $json = $cfg | ConvertTo-Json -Depth 20
-Set-Content -Path $OC_FILE -Value $json -Encoding utf8
+[System.IO.File]::WriteAllText($OC_FILE, $json, (New-Object System.Text.UTF8Encoding($false)))
 Write-Host "เขียน provider '9arm' ลง config: $OC_FILE" -ForegroundColor Green
 
 # --- 4. summary ---

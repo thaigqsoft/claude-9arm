@@ -64,7 +64,7 @@ function Install-ClaudeCli {
     Write-Host 'ยังไม่พบ claude - กำลังติดตั้ง Claude Code ผ่าน npm (global) ...'
     npm install -g @anthropic-ai/claude-code
     if ($LASTEXITCODE -ne 0) {
-        Write-Error "npm install ล้มเหลว (exit code: $LASTEXITCODE)"
+        Write-Host "npm install ล้มเหลว (exit code: $LASTEXITCODE)" -ForegroundColor Red
         Write-Host 'ตรวจสอบการเชื่อมต่ออินเทอร์เน็ต / proxy แล้วลองอีกครั้ง'
         exit 1
     }
@@ -97,8 +97,8 @@ $PROFILE_DIR = Join-Path $env:USERPROFILE '.claude-9arm'
 $TOKEN_FILE  = Join-Path $PROFILE_DIR 'token'
 
 if (-not (Test-Path $TOKEN_FILE)) {
-    Write-Error "ไม่พบ token file: $TOKEN_FILE" -Category ObjectNotFound
-    Write-Error 'กรุณารัน install-claude-9arm.ps1 เพื่อตั้งค่า token ก่อน (token มาจากเจ้าของ)'
+    Write-Host "ไม่พบ token file: $TOKEN_FILE" -ForegroundColor Red
+    Write-Host 'กรุณารัน install-claude-9arm.ps1 เพื่อตั้งค่า token ก่อน (token มาจากเจ้าของ)' -ForegroundColor Red
     exit 1
 }
 
@@ -130,21 +130,22 @@ if (Test-Path $profileClaude) {
 if ($HealthCheck -and $env:CLAUDE_9ARM_SKIP_CHECK -ne '1') {
     $probeClaude = Get-Command claude -ErrorAction SilentlyContinue
     if (-not $probeClaude) {
-        Write-Error 'claude command not found - cannot run health check. Run install-claude-9arm.ps1 first.'
+        Write-Host 'claude command not found - cannot run health check. Run install-claude-9arm.ps1 first.' -ForegroundColor Red
         exit 1
     }
     $probeOut = & $probeClaude.Source -p 'What is 1+1? Reply with the number only.'
-    if ($probeOut -notmatch '2') {
-        Write-Error 'claude-9arm health check FAILED'
+    $probeText = ($probeOut | Out-String).Trim()
+    if ($LASTEXITCODE -ne 0 -or $probeText -notmatch '2') {
+        Write-Host 'claude-9arm health check FAILED' -ForegroundColor Red
         exit 1
     }
-    Write-Host "Health check OK: $probeOut"
+    Write-Host "Health check OK: $probeText"
 }
 
 # --- Invoke claude with the forwarded arguments ---
 $claude = Get-Command claude -ErrorAction SilentlyContinue
 if (-not $claude) {
-    Write-Error 'ไม่พบคำสั่ง claude - กรุณารัน install-claude-9arm.ps1 (ติดตั้ง Claude Code) ก่อน'
+    Write-Host 'ไม่พบคำสั่ง claude - กรุณารัน install-claude-9arm.ps1 (ติดตั้ง Claude Code) ก่อน' -ForegroundColor Red
     exit 1
 }
 
@@ -205,13 +206,37 @@ Write-ProfileWrapper -ProfileDir $PROFILE_DIR
 $BIN_DIR = Join-Path $PROFILE_DIR 'bin'
 Write-CmdShim -BinDir $BIN_DIR
 
-# --- PATH instructions ---
+# --- PATH: append bin dir to USER PATH (non-destructive) ---
 Write-Host ''
 Write-Host '=== เพิ่ม bin ของ claude-9arm เข้า PATH ===' -ForegroundColor Cyan
-Write-Host 'รันคำสั่งนี้ (ใช้ได้กับ terminal ใหม่เท่านั้น):'
-Write-Host ''
-Write-Host '    setx PATH "%PATH%;%USERPROFILE%\.claude-9arm\bin"'
-Write-Host ''
+$binPath = Join-Path $PROFILE_DIR 'bin'
+$envKey = [Microsoft.Win32.Registry]::CurrentUser.OpenSubKey('Environment', $true)
+try {
+    $hasPath  = $envKey.GetValueNames() -contains 'Path'
+    $userPath = if ($hasPath) { $envKey.GetValue('Path', '', [Microsoft.Win32.RegistryValueOptions]::DoNotExpandEnvironmentNames) } else { '' }
+    $expanded = [Environment]::ExpandEnvironmentVariables($userPath)
+    if (($userPath -split ';' -contains $binPath) -or ($expanded -split ';' -contains $binPath)) {
+        Write-Host "bin อยู่ใน USER PATH แล้ว: $binPath" -ForegroundColor Green
+    } else {
+        $kind = if ($hasPath) { $envKey.GetValueKind('Path') } else { [Microsoft.Win32.RegistryValueKind]::ExpandString }
+        $newPath = if ([string]::IsNullOrWhiteSpace($userPath)) { $binPath } else { $userPath.TrimEnd(';') + ';' + $binPath }
+        $envKey.SetValue('Path', $newPath, $kind)
+        Write-Host "เพิ่ม bin เข้า USER PATH แล้ว: $binPath" -ForegroundColor Green
+        Write-Host 'หมายเหตุ: วิธีนี้ต่อท้าย PATH เดิมโดยไม่ลบรายการเดิม ไม่ตัดทอนเกิน 1024 ตัวอักษร และคงค่า %VAR% เดิมไว้' -ForegroundColor Yellow
+    }
+} finally {
+    $envKey.Close()
+}
+# Broadcast WM_SETTINGCHANGE so Explorer reloads the environment and terminals
+# opened afterwards see the new PATH without logging off.
+if (-not ('Win32.NativeMethods' -as [type])) {
+    Add-Type -Namespace Win32 -Name NativeMethods -MemberDefinition @'
+[DllImport("user32.dll", SetLastError = true, CharSet = CharSet.Auto)]
+public static extern IntPtr SendMessageTimeout(IntPtr hWnd, uint Msg, UIntPtr wParam, string lParam, uint fuFlags, uint uTimeout, out UIntPtr lpdwResult);
+'@
+}
+$smtoResult = [UIntPtr]::Zero
+[Win32.NativeMethods]::SendMessageTimeout([IntPtr]0xffff, 0x1A, [UIntPtr]::Zero, 'Environment', 2, 5000, [ref]$smtoResult) | Out-Null
 Write-Host 'จากนั้นเปิด terminal (PowerShell) ใหม่ แล้วลองรัน: claude-9arm "ทดสอบ"' -ForegroundColor Yellow
 Write-Host 'หมายเหตุ: PATH ปัจจุบันในหน้าต่างที่เปิดอยู่จะยังไม่เห็น - ต้องเปิด terminal ใหม่'
 

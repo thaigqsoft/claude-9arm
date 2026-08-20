@@ -17,8 +17,8 @@ $PROFILE_DIR = Join-Path $env:USERPROFILE '.claude-9arm'
 $TOKEN_FILE  = Join-Path $PROFILE_DIR 'token'
 
 if (-not (Test-Path $TOKEN_FILE)) {
-    Write-Error "ไม่พบ token file: $TOKEN_FILE" -Category ObjectNotFound
-    Write-Error 'กรุณารัน install-claude-9arm.ps1 เพื่อตั้งค่า token ก่อน (token มาจากเจ้าของ)'
+    Write-Host "ไม่พบ token file: $TOKEN_FILE" -ForegroundColor Red
+    Write-Host 'กรุณารัน install-claude-9arm.ps1 เพื่อตั้งค่า token ก่อน (token มาจากเจ้าของ)' -ForegroundColor Red
     exit 1
 }
 
@@ -50,21 +50,22 @@ if (Test-Path $profileClaude) {
 if ($HealthCheck -and $env:CLAUDE_9ARM_SKIP_CHECK -ne '1') {
     $probeClaude = Get-Command claude -ErrorAction SilentlyContinue
     if (-not $probeClaude) {
-        Write-Error 'claude command not found - cannot run health check. Run install-claude-9arm.ps1 first.'
+        Write-Host 'claude command not found - cannot run health check. Run install-claude-9arm.ps1 first.' -ForegroundColor Red
         exit 1
     }
     $probeOut = & $probeClaude.Source -p 'What is 1+1? Reply with the number only.'
-    if ($probeOut -notmatch '2') {
-        Write-Error 'claude-9arm health check FAILED'
+    $probeText = ($probeOut | Out-String).Trim()
+    if ($LASTEXITCODE -ne 0 -or $probeText -notmatch '2') {
+        Write-Host 'claude-9arm health check FAILED' -ForegroundColor Red
         exit 1
     }
-    Write-Host "Health check OK: $probeOut"
+    Write-Host "Health check OK: $probeText"
 }
 
 # --- Invoke claude with the forwarded arguments ---
 $claude = Get-Command claude -ErrorAction SilentlyContinue
 if (-not $claude) {
-    Write-Error 'ไม่พบคำสั่ง claude - กรุณารัน install-claude-9arm.ps1 (ติดตั้ง Claude Code) ก่อน'
+    Write-Host 'ไม่พบคำสั่ง claude - กรุณารัน install-claude-9arm.ps1 (ติดตั้ง Claude Code) ก่อน' -ForegroundColor Red
     exit 1
 }
 

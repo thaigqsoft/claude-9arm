@@ -98,10 +98,19 @@ powershell -NoProfile -ExecutionPolicy Bypass -File .\install-claude-9arm.ps1
 
 ## ขั้นตอนที่ 3 — เพิ่ม PATH
 
-เมื่อติดตั้งเสร็จ ให้รันคำสั่งนี้ใน PowerShell **หนึ่งครั้ง**:
+เมื่อติดตั้งเสร็จ สคริปต์จะ**เพิ่ม bin เข้า USER PATH ให้อัตโนมัติ** โดยใช้วิธีต่อท้าย (append) ผ่าน registry ซึ่ง**ไม่ลบรายการ PATH เดิม** และไม่ตัดทอนเกิน 1024 ตัวอักษร (ต่างจากคำสั่ง `setx PATH "%PATH%;..."` ที่มีปัญหาเขียนทับ PATH ทั้งหมด)
 
-```bat
-setx PATH "%PATH%;%USERPROFILE%\.claude-9arm\bin"
+ถ้าต้องการเพิ่มด้วยมือเอง ให้รันคำสั่งนี้ใน PowerShell **หนึ่งครั้ง**:
+
+```powershell
+$bin = Join-Path $env:USERPROFILE '.claude-9arm\bin'
+$userPath = [Environment]::GetEnvironmentVariable('Path', 'User')
+if ($userPath -split ';' -contains $bin) {
+    Write-Host 'bin อยู่ใน PATH แล้ว'
+} else {
+    [Environment]::SetEnvironmentVariable('Path', "$userPath;$bin", 'User')
+    Write-Host 'เพิ่ม bin เข้า USER PATH แล้ว'
+}
 ```
 
 แล้ว**ต้องเปิดหน้าต่าง PowerShell ใหม่เสมอ** เพราะหน้าต่างที่เปิดอยู่ตอนนี้จะยังใช้ PATH เก่าอยู่
