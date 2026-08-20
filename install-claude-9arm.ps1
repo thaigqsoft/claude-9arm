@@ -1,4 +1,4 @@
-# install-claude-9arm.ps1 - One-time Windows setup for claude-9arm (PowerShell wrapper)
+﻿# install-claude-9arm.ps1 - One-time Windows setup for claude-9arm (PowerShell wrapper)
 #
 # What it does:
 #   1. Verifies node + npm are on PATH (never installs Node silently).
@@ -152,7 +152,12 @@ if (-not $claude) {
 exit $LASTEXITCODE
 '@
 
-    Set-Content -Path (Join-Path $ProfileDir 'claude-9arm.ps1') -Value $wrapperContent -Encoding utf8
+    # Write the wrapper as UTF-8 WITH BOM so Thai text survives on Windows
+    # PowerShell 5.1 (which reads BOM-less .ps1 as ANSI). NB: -Encoding utf8
+    # means "with BOM" on 5.1 but "without BOM" on PowerShell 7+, so use the
+    # explicit .NET writer to be deterministic across both.
+    $utf8Bom = New-Object System.Text.UTF8Encoding($true)
+    [System.IO.File]::WriteAllText((Join-Path $ProfileDir 'claude-9arm.ps1'), $wrapperContent, $utf8Bom)
     Write-Host ("เขียน wrapper: {0}\claude-9arm.ps1" -f $ProfileDir) -ForegroundColor Green
 }
 

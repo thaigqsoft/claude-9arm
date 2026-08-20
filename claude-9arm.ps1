@@ -1,4 +1,4 @@
-# claude-9arm.ps1 - Windows runtime wrapper for claude-9arm
+﻿# claude-9arm.ps1 - Windows runtime wrapper for claude-9arm
 # Mirrors the Linux bash wrapper env logic. Health probe is OFF by default
 # (opt-in via -HealthCheck) to avoid an extra token round-trip for the friend.
 # Invoke through the .cmd shim (which passes -NoProfile -ExecutionPolicy Bypass)

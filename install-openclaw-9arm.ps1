@@ -1,4 +1,4 @@
-# install-openclaw-9arm.ps1 - Wire the OpenClaw agent to the 9arm gateway
+﻿# install-openclaw-9arm.ps1 - Wire the OpenClaw agent to the 9arm gateway
 #
 #   1. Requires ~\.claude-9arm\token (from install-claude-9arm.ps1).
 #   2. Installs OpenClaw if not found (skippable with -SkipInstall).

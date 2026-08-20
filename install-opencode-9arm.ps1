@@ -1,4 +1,4 @@
-# install-opencode-9arm.ps1 - Wire the `opencode` coding agent to the 9arm gateway
+﻿# install-opencode-9arm.ps1 - Wire the `opencode` coding agent to the 9arm gateway
 #
 # What it does:
 #   1. Requires the gateway token at ~\.claude-9arm\token (from install-claude-9arm.ps1).

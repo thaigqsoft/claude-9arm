@@ -1,4 +1,4 @@
-# install-hermes-9arm.ps1 - Wire the Hermes agent to the 9arm gateway
+﻿# install-hermes-9arm.ps1 - Wire the Hermes agent to the 9arm gateway
 #
 #   1. Requires ~\.claude-9arm\token (from install-claude-9arm.ps1).
 #   2. Installs Hermes if not found (skippable with -SkipInstall).

@@ -1,4 +1,4 @@
-# install-qwen-code-9arm.ps1 - Wire the `qwen-code` agent to the 9arm gateway
+﻿# install-qwen-code-9arm.ps1 - Wire the `qwen-code` agent to the 9arm gateway
 #
 #   1. Requires ~\.claude-9arm\token (from install-claude-9arm.ps1).
 #   2. Installs `@qwen-code/cli` (or `qwen-code`) if not found.
