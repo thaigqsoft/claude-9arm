@@ -3,6 +3,12 @@
 ตัวห่อ (wrapper) สำหรับเรียก Claude Code ผ่าน gateway `https://gateway.9arm.co` บน macOS
 พอร์ตมาจากเวอร์ชัน Linux (bash) — ใช้ model เดียวกันและแยก profile/config แยกเป็นของตัวเอง
 
+> ### 🙏 ขอบคุณเจ้าชายไอทีแห่งประเทศไทย — 9Arm
+> สคริปต์ตัวนี้เชื่อมต่อกับ AI gateway ของ **9Arm (เจ้าชายไอทีแห่งประเทศไทย)**
+> ถ้าใช้งานแล้วถูกใจ ช่วย **กดติดตาม (Subscribe)** เป็นกำลังใจ & เชียร์ค่าโทเค็น (token) ที่ใช้เลี้ยง AI ให้เค้าได้ต่อยอดไปเรื่อยๆ
+>
+> 🔗 YouTube: <https://www.youtube.com/@9arm>
+
 > ต่างจากเวอร์ชัน Windows ตรงที่บน macOS ไม่มี ExecutionPolicy และ shim เป็น **symlink** (ไม่มี `.cmd`)
 > ตัว script เขียนด้วย **bash** (`#!/usr/bin/env bash`) — หน้า terminal เริ่มต้นเป็น zsh ก็รันได้
 
