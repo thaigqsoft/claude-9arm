@@ -105,6 +105,21 @@ claude-9arm -HealthCheck
 
 ---
 
+## เชื่อมต่อกับ agent อื่น (ใช้ token เดียวกัน)
+
+มีสคริปต์เชื่อม coding agent ตัวอื่นเข้ากับ gateway 9arm เดียวกัน (ใช้ token ตัวเดียวกับ claude-9arm):
+
+| Agent | Windows installer | macOS installer | README |
+|---|---|---|---|
+| **opencode** | `install-opencode-9arm.ps1` | `install-opencode-9arm-mac.sh` | [README-opencode.md](README-opencode.md) |
+| **Qwen Code** | `install-qwen-code-9arm.ps1` | `install-qwen-code-9arm-mac.sh` | [README-qwen-code.md](README-qwen-code.md) |
+| **OpenClaw** | `install-openclaw-9arm.ps1` | `install-openclaw-9arm-mac.sh` | [README-openclaw.md](README-openclaw.md) |
+| **Hermes** | `install-hermes-9arm.ps1` | `install-hermes-9arm-mac.sh` | [README-hermes.md](README-hermes.md) |
+
+ทุกตัวต้องการ token จาก `install-claude-9arm.*` ก่อน แล้วค่อยเลือกติดตั้ง agent ที่เพื่อนใช้จริง
+
+---
+
 ## ไฟล์ที่เกี่ยวข้อง
 
 | ไฟล์ | ตำแหน่ง | หน้าที่ |
@@ -112,5 +127,9 @@ claude-9arm -HealthCheck
 | `install-claude-9arm.ps1` | โปรเจกต์นี้ | ติดตั้งครั้งเดียว (idempotent) |
 | `claude-9arm.ps1` | `%USERPROFILE%\.claude-9arm\` | runtime wrapper (เขียนโดย installer) |
 | `claude-9arm.cmd` | `%USERPROFILE%\.claude-9arm\bin\` | shim สำหรับเรียก `claude-9arm` |
+| `install-opencode-9arm.*` | โปรเจกต์นี้ | เชื่อม opencode เข้า gateway |
+| `install-qwen-code-9arm.*` | โปรเจกต์นี้ | เชื่อม Qwen Code เข้า gateway |
+| `install-openclaw-9arm.*` | โปรเจกต์นี้ | เชื่อม OpenClaw เข้า gateway |
+| `install-hermes-9arm.*` | โปรเจกต์นี้ | เชื่อม Hermes เข้า gateway |
 | `token` | `%USERPROFILE%\.claude-9arm\` | gateway token |
 | `CLAUDE.md` | `%USERPROFILE%\.claude-9arm\` | (ถ้ามี) system prompt เพิ่มเติม |
