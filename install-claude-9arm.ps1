@@ -9,8 +9,9 @@
 #      in ~\.claude-9arm\token. Only prompts if the token is missing, or when
 #      -PromptToken is passed (to reset).
 #   5. Writes the runtime wrapper claude-9arm.ps1 into the profile dir.
-#   6. Creates the claude-9arm.cmd shim in ~\.claude-9arm\bin so you can type
-#      `claude-9arm` anywhere (once the bin dir is on PATH).
+#   6. Creates the claude-9arm.cmd shim in ~\.local\bin (shared conventional
+#      bin dir — often already on PATH via pipx/uv) so you can type
+#      `claude-9arm` anywhere.
 #   7. Prints usage + where the token lives.
 #
 # Safe to re-run: idempotent.
@@ -165,7 +166,7 @@ exit $LASTEXITCODE
 function Write-CmdShim {
     param([string]$BinDir)
     if (-not (Test-Path $BinDir)) { New-Item -ItemType Directory -Path $BinDir -Force | Out-Null }
-    $shim = '@powershell -NoProfile -ExecutionPolicy Bypass -File "%~dp0..\claude-9arm.ps1" %*'
+    $shim = '@powershell -NoProfile -ExecutionPolicy Bypass -File "%USERPROFILE%\.claude-9arm\claude-9arm.ps1" %*'
     Set-Content -Path (Join-Path $BinDir 'claude-9arm.cmd') -Value $shim -Encoding ascii
     Write-Host ("เขียน shim: {0}\claude-9arm.cmd" -f $BinDir) -ForegroundColor Green
 }
@@ -203,13 +204,13 @@ if ($PromptToken -or -not (Test-Path $TOKEN_FILE)) {
 
 # --- Write wrapper + shim (rewritten every run for idempotency) ---
 Write-ProfileWrapper -ProfileDir $PROFILE_DIR
-$BIN_DIR = Join-Path $PROFILE_DIR 'bin'
+$BIN_DIR = Join-Path $env:USERPROFILE '.local\bin'
 Write-CmdShim -BinDir $BIN_DIR
 
 # --- PATH: append bin dir to USER PATH (non-destructive) ---
 Write-Host ''
 Write-Host '=== เพิ่ม bin ของ claude-9arm เข้า PATH ===' -ForegroundColor Cyan
-$binPath = Join-Path $PROFILE_DIR 'bin'
+$binPath = $BIN_DIR
 $envKey = [Microsoft.Win32.Registry]::CurrentUser.OpenSubKey('Environment', $true)
 try {
     $hasPath  = $envKey.GetValueNames() -contains 'Path'
@@ -246,6 +247,7 @@ Write-Host '=== สรุปการติดตั้ง ===' -ForegroundColor
 Write-Host '  • token ถูกเก็บไว้ที่ : %USERPROFILE%\.claude-9arm\token'
 Write-Host '  • ค่าคอนฟิกแยก (profile): %USERPROFILE%\.claude-9arm'
 Write-Host '  • wrapper อยู่ที่      : %USERPROFILE%\.claude-9arm\claude-9arm.ps1'
+Write-Host '  • shim (entry point)  : %USERPROFILE%\.local\bin\claude-9arm.cmd'
 Write-Host '  • คำสั่งใช้             : claude-9arm "คำถามของคุณ"'
 Write-Host '  • ทดสอบเชื่อมต่อ       : claude-9arm -HealthCheck'
 Write-Host ''

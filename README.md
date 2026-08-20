@@ -100,10 +100,12 @@ powershell -NoProfile -ExecutionPolicy Bypass -File .\install-claude-9arm.ps1
 
 เมื่อติดตั้งเสร็จ สคริปต์จะ**เพิ่ม bin เข้า USER PATH ให้อัตโนมัติ** โดยใช้วิธีต่อท้าย (append) ผ่าน registry ซึ่ง**ไม่ลบรายการ PATH เดิม** และไม่ตัดทอนเกิน 1024 ตัวอักษร (ต่างจากคำสั่ง `setx PATH "%PATH%;..."` ที่มีปัญหาเขียนทับ PATH ทั้งหมด)
 
+ตำแหน่ง shim คือ `%USERPROFILE%\.local\bin` ซึ่งเป็นโฟลเดอร์ bin มาตรฐานที่เครื่องนักพัฒนาจำนวนมากมีอยู่ใน PATH แล้ว (เช่นเครื่องที่ติดตั้ง pipx หรือ uv) — กรณีนั้นสคริปต์จะตรวจพบและข้ามการแก้ PATH ให้เอง ใช้งานได้ทันทีโดยไม่ต้องเปิด terminal ใหม่
+
 ถ้าต้องการเพิ่มด้วยมือเอง ให้รันคำสั่งนี้ใน PowerShell **หนึ่งครั้ง**:
 
 ```powershell
-$bin = Join-Path $env:USERPROFILE '.claude-9arm\bin'
+$bin = Join-Path $env:USERPROFILE '.local\bin'
 $userPath = [Environment]::GetEnvironmentVariable('Path', 'User')
 if ($userPath -split ';' -contains $bin) {
     Write-Host 'bin อยู่ใน PATH แล้ว'
@@ -115,7 +117,7 @@ if ($userPath -split ';' -contains $bin) {
 
 แล้ว**ต้องเปิดหน้าต่าง PowerShell ใหม่เสมอ** เพราะหน้าต่างที่เปิดอยู่ตอนนี้จะยังใช้ PATH เก่าอยู่
 
-**PATH คืออะไร? อธิบายง่ายๆ** PATH คือรายชื่อโฟลเดอร์ที่ Windows ใช้ค้นหาคำสั่ง คล้ายๆ สมุดโทรศัพท์ — เมื่อคุณพิมพ์คำว่า `claude-9arm` Windows จะไล่ค้นหาในโฟลเดอร์ที่อยู่ใน PATH ว่ามีคำสั่งนี้อยู่หรือเปล่า ถ้ายังไม่ได้เพิ่ม `%USERPROFILE%\.claude-9arm\bin` เข้าไป Windows ก็หาคำสั่งไม่พบ (หรือที่เรียกว่า "ไม่ใช่คำสั่งที่รู้จัก") เมื่อเพิ่มแล้ว Windows จะรู้จักคำสั่ง `claude-9arm` ได้จากทุกที่
+**PATH คืออะไร? อธิบายง่ายๆ** PATH คือรายชื่อโฟลเดอร์ที่ Windows ใช้ค้นหาคำสั่ง คล้ายๆ สมุดโทรศัพท์ — เมื่อคุณพิมพ์คำว่า `claude-9arm` Windows จะไล่ค้นหาในโฟลเดอร์ที่อยู่ใน PATH ว่ามีคำสั่งนี้อยู่หรือเปล่า ถ้ายังไม่ได้เพิ่ม `%USERPROFILE%\.local\bin` เข้าไป Windows ก็หาคำสั่งไม่พบ (หรือที่เรียกว่า "ไม่ใช่คำสั่งที่รู้จัก") เมื่อเพิ่มแล้ว Windows จะรู้จักคำสั่ง `claude-9arm` ได้จากทุกที่
 
 ---
 
@@ -213,7 +215,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File .\install-claude-9arm.ps1 -S
 |---|---|---|
 | `install-claude-9arm.ps1` | โปรเจกต์นี้ | ตัวติดตั้ง (รันครั้งเดียว ปลอดภัยต่อการรันซ้ำ) |
 | `claude-9arm.ps1` | `%USERPROFILE%\.claude-9arm\` | runtime wrapper (เขียนโดยตัวติดตั้ง) |
-| `claude-9arm.cmd` | `%USERPROFILE%\.claude-9arm\bin\` | shim สำหรับเรียก `claude-9arm` จากทุกที่ |
+| `claude-9arm.cmd` | `%USERPROFILE%\.local\bin\` | shim สำหรับเรียก `claude-9arm` จากทุกที่ |
 | `install-opencode-9arm.*` | โปรเจกต์นี้ | เชื่อม opencode เข้า gateway |
 | `install-qwen-code-9arm.*` | โปรเจกต์นี้ | เชื่อม Qwen Code เข้า gateway |
 | `install-openclaw-9arm.*` | โปรเจกต์นี้ | เชื่อม OpenClaw เข้า gateway |
