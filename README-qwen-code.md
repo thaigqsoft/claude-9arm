@@ -1,63 +1,136 @@
-# Qwen Code → 9arm Gateway
+# Qwen Code → 9Arm Gateway
 
-เชื่อม Coding agent **Qwen Code** เข้ากับ gateway `https://gateway.9arm.co` ของ **9Arm** ผ่าน token ตัวเดียวกับ claude-9arm.
+ไฟล์ชุดนี้ช่วยเชื่อม **Qwen Code** (โปรแกรมช่วยเขียนโค้ดของ AI ค่าย Alibaba) เข้ากับ gateway ของ **9Arm** แบบติดตั้งง่าย ไม่ต้องมานั่งตั้งค่าอะไรยุ่งยาก เพียงแค่รันสคริปต์เดียว ก็ใช้ Qwen Code คุยกับ AI ผ่าน gateway ได้ทันที
 
 > ### 🙏 ขอบคุณเจ้าชายไอทีแห่งประเทศไทย — 9Arm
-> ช่วย **กดติดตาม (Subscribe)** เป็นกำลังใจ & เชียร์ค่าโทเค็นให้ AI ต่อยอดได้เรื่อยๆ
+> สคริปต์ตัวนี้เชื่อมต่อกับ AI gateway ของ **9Arm (เจ้าชายไอทีแห่งประเทศไทย)**
+> ถ้าใช้งานแล้วถูกใจ ช่วย **กดติดตาม (Subscribe)** เป็นกำลังใจ & เชียร์ค่าโทเค็น (token) ที่ใช้เลี้ยง AI ให้เค้าได้ต่อยอดไปเรื่อยๆ
+>
 > 🔗 YouTube: <https://www.youtube.com/@9arm>
 
 ---
 
-## สิ่งที่ต้องมีก่อน
+## สิ่งนี้คืออะไร / เหมาะกับใคร
 
-- รัน `install-claude-9arm.ps1` (Windows) หรือ `install-claude-9arm-mac.sh` (macOS) ก่อน เพื่อสร้าง token ที่ `~/.claude-9arm/token`
-- มี Qwen Code (`qwen` / `qwen-code`) — ใช้สคริปต์นี้ติดตั้งให้อัตโนมัติ หรือติดตั้งเองจาก [QwenLM/qwen-code](https://github.com/QwenLM/qwen-code)
+**Qwen Code** คือ coding agent (โปรแกรม AI ที่ช่วยเขียนและแก้ไขโค้ดให้เรา) ตระกูล Qwen ของบริษัท Alibaba ใช้ทำงานในเทอร์มินัล (หน้าจอดำๆ สำหรับพิมพ์คำสั่ง) โปรเจกต์อยู่ที่ https://github.com/QwenLM/qwen-code
 
-## ติดตั้ง
+สคริปต์ในไฟล์ชุดนี้จะทำให้ Qwen Code คุยกับ AI ผ่าน gateway ของ 9Arm ที่อยู่ที่ https://gateway.9arm.co แทนที่จะใช้บริการอื่น
 
-**Windows:**
+เหมาะกับ **คนทั่วไป ไม่จำเป็นต้องเก่งคอมพิวเตอร์** แค่ทำตามขั้นตอนด้านล่างตามลำดับก็ใช้ได้เลย
+
+## ต้องเตรียมอะไรก่อน
+
+ก่อนเริ่มต้น ตรวจว่าเครื่องคุณมีครบตามนี้แล้วหรือยัง
+
+1. **ติดตั้ง claude-9arm ให้เสร็จก่อนเสมอ** — สำคัญมาก เพราะ installer ตัวนั้นเป็นตัวสร้างไฟล์ token (รหัสผ่านเชื่อมต่อ) ที่ agent ตัวอื่นเอาไปใช้ร่วมกัน
+   - บน **Windows** ใช้สคริปต์ `install-claude-9arm.ps1`
+   - บน **macOS** ใช้สคริปต์ `install-claude-9arm-mac.sh`
+2. **Node.js LTS** (มาพร้อมกับ npm) ดาวน์โหลดได้ที่ https://nodejs.org (บน macOS จะใช้คำสั่ง `brew install node` ในเทอร์มินัลก็ได้)
+3. **token** (รหัสเชื่อมต่อ) ที่ออกให้โดยเจ้าของ gateway ต้องขอจากเจ้าของเท่านั้น **ห้ามแชร์ต่อ**
+   - ตำแหน่งที่เก็บ: Windows อยู่ที่ `%USERPROFILE%\.claude-9arm\token` / macOS อยู่ที่ `~/.claude-9arm/token`
+
+## ขั้นตอนที่ 1: ดาวน์โหลดไฟล์
+
+สามารถดาวน์โหลดไฟล์ชุดนี้ได้ 2 วิธี เลือกวิธีที่ถนัด:
+
+**วิธี A — ดาวน์โหลดเป็น ZIP (สำหรับมือใหม่):**
+1. เปิดเบราว์เซอร์ไปที่ https://github.com/thaigqsoft/claude-9arm
+2. กดปุ่มเขียว **Code**
+3. เลือก **Download ZIP**
+4. แตกไฟล์ ZIP ออกมา แล้วจำที่อยู่โฟลเดอร์ไว้ให้ดี
+
+**วิธี B — ใช้คำสั่ง git (สำหรับที่คุ้นเคย):**
+```
+git clone https://github.com/thaigqsoft/claude-9arm.git
+```
+
+จากนั้นเปิดเทอร์มินัลแล้วเข้าไปที่โฟลเดอร์ที่ดาวน์โหลดมา (เรียกว่า cd หรือย้ายเข้าไปในโฟลเดอร์):
+
+- **Windows:** เปิด File Explorer แล้วเข้าไปในโฟลเดอร์ที่แตกไฟล์ไว้ > คลิกช่อง address bar (แถบที่อยู่) ด้านบน > พิมพ์ `powershell` แล้วกด Enter ระบบจะเปิดหน้าต่าง PowerShell ภายในโฟลเดอร์นั้นให้เลย
+- **macOS:** เปิดแอป Terminal แล้วพิมพ์ `cd ` (มีเว้นวรรคหนึ่งครั้งท้ายคำสั่ง) แล้วลากโฟลเดอร์จาก Finder มาวางในหน้าต่าง Terminal แล้วกด Enter
+
+## ขั้นตอนที่ 2: ติดตั้ง
+
+**ก่อนรันสคริปต์ด้านล่าง ให้ cd เข้าไปในโฟลเดอร์ที่ดาวน์โหลดมาในขั้นตอนที่ 1 ก่อนเสมอ** แล้วค่อยพิมพ์คำสั่งติดตั้ง
+
+เลือกตามระบบปฏิบัติการของเครื่องคุณ:
+
+**Windows** — พิมพ์คำสั่งนี้ใน PowerShell (แล้วกด Enter):
 ```powershell
 powershell -NoProfile -ExecutionPolicy Bypass -File .\install-qwen-code-9arm.ps1
 ```
 
-**macOS:**
+**macOS** — พิมพ์คำสั่งนี้ใน Terminal (แล้วกด Enter):
 ```bash
 bash install-qwen-code-9arm-mac.sh
 ```
 
-สคริปต์จะเขียน `modelProviders` (auth type `openai`) ลงใน `settings.json` ของ Qwen Code โดยชี้ไปที่ `https://gateway.9arm.co/v1` และใส่ token เป็น `ARM_API_PASSPORT`
+สิ่งที่คุณจะเห็นบนจอระหว่างติดตั้ง:
+1. ถ้ายังไม่ติดตั้ง Qwen Code สคริปต์จะติดตั้งให้อัตโนมัติผ่าน npm แล้วจะขึ้นข้อความว่า "ติดตั้ง qwen-code สำเร็จ"
+2. สคริปต์จะเขียนค่าการเชื่อมต่อลงในไฟล์ตั้งค่าโดยอัตโนมัติ แล้วแสดงข้อความสำเร็จ
 
-## วิธีใช้
-
-เปิด Qwen Code แล้วใช้คำสั่ง `/model` เลือกรายชื่อ:
-
-- `qwen3.8-27b-fp8` — Qwen 3.8 27b FP8
-- `deepseek-v4-flash-0731` — DeepSeek V4 Flash 0731
-
+**ถ้าติดตั้งโปรแกรม Qwen Code ไว้เองแล้ว** และไม่อยากให้สคริปต์ติดตั้งซ้ำ ฝั่ง macOS ใส่ `--skip-install` ต่อท้ายก็ได้:
 ```bash
-qwen "คำถามของคุณ"   # แล้วกดเลื่อน model ที่ต้องการ
+bash install-qwen-code-9arm-mac.sh --skip-install
 ```
 
-## Model ที่ใช้ได้
+> หมายเหตุ: สคริปต์ทุกตัวรันซ้ำได้หลายครั้งโดยไม่เสียหาย (เรียกว่า idempotent) ถ้าเผลอรันซ้ำก็ไม่ต้องกังวล
 
-| Model ID |
-|---|
-| `qwen3.8-27b-fp8` |
-| `deepseek-v4-flash-0731` |
+## ขั้นตอนที่ 3: ใช้งานจริง
 
----
+เมื่อติดตั้งเสร็จแล้ว สคริปต์จะเขียนค่า **modelProviders** (รายชื่อผู้ให้บริการโมเดล) แบบ auth type (ชนิดการยืนยันตัวตน) เป็น `openai` ลงในไฟล์ `~/.config/qwen-code/settings.json`
 
-## Troubleshooting
+โดยชี้ไปที่ endpoint (ปลายทางเชื่อมต่อ) แบบ OpenAI-compatible คือ https://gateway.9arm.co/v1 และเก็บ token เป็นตัวแปรชื่อ **ARM_API_PASSPORT** (ตัวแปรที่ใช้เก็บรหัสเชื่อมต่อ)
 
-| อาการ | วิธีแก้ |
-|---|---|
-| `ไม่พบ token file` | รัน installer ของ claude-9arm ก่อนเพื่อสร้าง token |
-| model หายจาก /model | เช็คว่ามี block `modelProviders.openai` ใน `~/.config/qwen-code/settings.json` |
-| gateway เงียบ/ช้า | gateway อาจชั่วคราวลง — รอสักครู่แล้วลองใหม่ |
+วิธีการใช้งาน:
+1. เปิดโปรแกรม Qwen Code ด้วยคำสั่ง `qwen` ในเทอร์มินัล
+2. พิมพ์คำสั่ง `/model` (เครื่องหมายทับนำหน้า) เพื่อเปิดรายการเลือกโมเดล
+3. เลือกโมเดลที่ต้องการจากตารางด้านล่าง
+
+ตัวอย่าง:
+```bash
+qwen "ช่วยเขียนโค้ด Python หาผลบวกของเลขสองตัว"
+```
+
+### ตารางโมเดลที่ใช้ได้
+
+| Model ID | ชื่อที่แสดง | หมายเหตุ |
+|---|---|---|
+| `qwen3.8-27b-fp8` | Qwen 3.8 27b FP8 | โมเดล Qwen ขนาด 27b ความละเอียด FP8 |
+| `deepseek-v4-flash-0731` | DeepSeek V4 Flash 0731 | โมเดล DeepSeek แบบ Flash รุ่น 0731 |
+
+## เช็คว่าใช้ได้จริงไหม
+
+ลองพิมพ์คำสั่ง `/model` ในโปรแกรม Qwen Code ดู ถ้าเห็นชื่อโมเดล `qwen3.8-27b-fp8` หรือ `deepseek-v4-flash-0731` อยู่ในรายการ แปลว่าการเชื่อมต่อกับ gateway ของ 9Arm ตั้งค่าเรียบร้อยแล้ว ลองถามคำถามง่ายๆ เช่น "1+1 เท่ากับเท่าไหร่" ถ้า AI ตอบกลับมาได้ แสดงว่าใช้งานได้จริง
+
+## ถ้าติดปัญหา
+
+| อาการ | สาเหตุ | วิธีแก้ |
+|---|---|---|
+| ขึ้นข้อความ "ไม่พบ token file" | ยังไม่ได้ติดตั้ง claude-9arm หรือยังไม่มีไฟล์ token | กลับไปติดตั้ง claude-9arm ก่อนด้วย `install-claude-9arm.ps1` (Windows) หรือ `install-claude-9arm-mac.sh` (macOS) เพื่อสร้างไฟล์ token |
+| ไม่เห็นโมเดลในรายการ `/model` | ไฟล์ settings.json ยังไม่ถูกเขียน หรือเขียนไม่ถูกต้อง | ตรวจว่ามี block `modelProviders.openai` ในไฟล์ `~/.config/qwen-code/settings.json` ถ้าไม่มี ให้รันสคริปต์ติดตั้งใหม่ |
+| พิมพ์คำสั่ง `qwen` แล้วไม่รู้จักคำสั่ง | ยังไม่ได้ติดตั้ง Qwen Code | รันสคริปต์ติดตั้งใหม่ หรือติดตั้ง Qwen Code เองจาก https://github.com/QwenLM/qwen-code |
+| AI ไม่ตอบ หรือตอบช้ามาก | gateway อาจชั่วคราวขัดข้องหรือการเชื่อมต่อไม่ดี | รอสักครู่แล้วลองใหม่ เช็คว่าอินเทอร์เน็ตทำงานปกติ |
+| ขึ้น error เกี่ยวกับ Node.js / npm | ยังไม่ได้ติดตั้ง Node.js | ติดตั้ง Node.js LTS จาก https://nodejs.org (macOS ใช้ `brew install node`) แล้วลองใหม่ |
+| token ไม่ทำงาน / ถูกปฏิเสธ | token ตั้งค่าไม่ถูกต้องหรือใช้คนละ token | ตรวจว่า token ในไฟล์ `~/.claude-9arm/token` ถูกต้อง ขอ token ใหม่จากเจ้าของ gateway (ห้ามแชร์ต่อ) แล้วรันสคริปต์ติดตั้งใหม่ |
+
+## คำถามที่พบบ่อย
+
+**ถาม: ทำไมต้องติดตั้ง claude-9arm ก่อนด้วย?**
+ตอบ: เพราะ installer ของ claude-9arm เป็นตัวสร้างไฟล์ token ที่ทุก agent เอาไปใช้ร่วมกัน ถ้าไม่ติดตั้งก่อน จะไม่มี token ให้สคริปต์ตัวนี้ใช้เชื่อมต่อ
+
+**ถาม: ใช้โมเดลได้กี่ตัว แล้วเปลี่ยนได้ไหม?**
+ตอบ: ได้ เลือกได้ทั้ง `qwen3.8-27b-fp8` และ `deepseek-v4-flash-0731` ผ่านคำสั่ง `/model`
+
+**ถาม: สคริปต์รันซ้ำได้หรือเปล่า?**
+ตอบ: ได้ สคริปต์ทุกตัวรันซ้ำได้อย่างปลอดภัย (idempotent) ไม่ทำให้เครื่องเสียหาย
 
 ## ไฟล์ที่เกี่ยวข้อง
 
 | ไฟล์ | ตำแหน่ง | หน้าที่ |
 |---|---|---|
-| `settings.json` | `~/.config/qwen-code/settings.json` | config ของ Qwen Code (เขียนโดย installer) |
-| `token` | `~/.claude-9arm/token` | gateway token (ของ claude-9arm) |
+| `install-qwen-code-9arm.ps1` | โฟลเดอร์โปรเจกต์ (ดาวน์โหลดมา) | สคริปต์ติดตั้งสำหรับ Windows |
+| `install-qwen-code-9arm-mac.sh` | โฟลเดอร์โปรเจกต์ (ดาวน์โหลดมา) | สคริปต์ติดตั้งสำหรับ macOS |
+| `install-claude-9arm.ps1` / `install-claude-9arm-mac.sh` | โฟลเดอร์โปรเจกต์ (ดาวน์โหลดมา) | ตัวสร้างไฟล์ token ที่ต้องติดตั้งก่อนเสมอ |
+| `settings.json` | `~/.config/qwen-code/settings.json` | ไฟล์ตั้งค่าของ Qwen Code (เขียนโดยสคริปต์ติดตั้ง) |
+| `token` | Windows: `%USERPROFILE%\.claude-9arm\token` / macOS: `~/.claude-9arm/token` | ไฟล์เก็บ token ที่ใช้เชื่อมต่อ gateway |

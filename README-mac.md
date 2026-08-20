@@ -1,7 +1,6 @@
-# claude-9arm — macOS bash wrapper
+# claude-9arm สำหรับ macOS
 
-ตัวห่อ (wrapper) สำหรับเรียก Claude Code ผ่าน gateway `https://gateway.9arm.co` บน macOS
-พอร์ตมาจากเวอร์ชัน Linux (bash) — ใช้ model เดียวกันและแยก profile/config แยกเป็นของตัวเอง
+ชุดสคริปต์นี้ทำให้เครื่อง Mac ของคุณเรียกใช้ **Claude Code** ผ่าน **AI gateway ของ 9Arm** ได้ โดยใช้ **token** ที่เจ้าของ gateway (เจ้าชายไอทีแห่งประเทศไทย) เป็นผู้ออกให้ ตัวติดตั้งจัดการทุกอย่างให้อัตโนมัติ ตั้งแต่วาง token จัดการ PATH ไปจนถึงสร้างคำสั่ง `claude-9arm` เพื่อให้คุณพิมพ์คำถาม แล้วได้คำตอบจาก AI ได้เลย ไม่ต้องมานั่งตั้งค่าอะไรยุ่งยาก
 
 > ### 🙏 ขอบคุณเจ้าชายไอทีแห่งประเทศไทย — 9Arm
 > สคริปต์ตัวนี้เชื่อมต่อกับ AI gateway ของ **9Arm (เจ้าชายไอทีแห่งประเทศไทย)**
@@ -9,124 +8,204 @@
 >
 > 🔗 YouTube: <https://www.youtube.com/@9arm>
 
-> ต่างจากเวอร์ชัน Windows ตรงที่บน macOS ไม่มี ExecutionPolicy และ shim เป็น **symlink** (ไม่มี `.cmd`)
-> ตัว script เขียนด้วย **bash** (`#!/usr/bin/env bash`) — หน้า terminal เริ่มต้นเป็น zsh ก็รันได้
+> 💡 **ใช้ Windows อยู่เหรอ?** ให้ไปอ่านคู่มือเวอร์ชัน Windows ที่ไฟล์ [README.md](README.md) แทน (คู่มือหน้านี้เขียนสำหรับ macOS โดยเฉพาะ)
 
 ---
 
-## ความต้องการของระบบ (Requirements)
+## โปรแกรมนี้ทำอะไรได้
 
-- **macOS** (Apple Silicon หรือ Intel ก็ได้)
-- **Node.js LTS** (มาพร้อม `npm`) และ `bash`, `curl` (มากับ macOS อยู่แล้ว)
-- ถ้ายังไม่มี Node.js ให้ติดตั้งผ่าน brew:
-  ```bash
-  brew install node
-  ```
-  หรือดาวน์โหลดตัว LTS จาก https://nodejs.org
-- อินเทอร์เน็ต (สำหรับติดตั้ง Claude Code ผ่าน npm และคุยกับ gateway)
+ลองนึกภาพว่าแทนที่จะเปิดเว็บเบราว์เซอร์แล้วพิมพ์ถาม AI ทีละหน้า วิธีนี้คุณพิมพ์คำสั่งลงใน **Terminal** (หน้าต่างคำสั่งของ Mac) แล้วได้คำตอบกลับมาเป็นตัวหนังสือทันที เหมาะกับงานแบบนี้ เช่น
+
+- ถาม AI ให้สรุปเนื้อหา หรืออธิบายเรื่องที่อยากรู้เป็นภาษาไทย
+- ให้ AI ช่วยเขียนโปรแกรม แก้บั๊ก หรือตรวจสอบโค้ด (เหมาะสำหรับคนที่เริ่มเรียนเขียนโปรแกรม)
+- ให้ AI ช่วยวางแผนงาน เขียนข้อความ หรือแยกแยะข้อมูลที่ยุ่งยากซับซ้อน
+
+ที่สำคัญคือทั้งหมดนี้วิ่งผ่าน **AI gateway ของ 9Arm** ต่อกับโมเดลภาษา (language model) ที่เจ้าของ gateway เตรียมไว้ให้ใช้งานร่วมกัน ด้วย token อันเดียวกับตัวอื่น
 
 ---
 
-## 1) ติดตั้ง Installer
+## ต้องเตรียมอะไรก่อน
 
-รันสคริปต์ `install-claude-9arm-mac.sh` หนึ่งครั้ง:
+ก่อนเริ่มติดตั้ง ตรวจสอบว่าคุณมีสิ่งเหล่านี้ครบแล้ว:
 
-### วิธี A — ผ่าน bash โดยตรง
+| สิ่งที่ต้องเตรียม | คำอธิบาย |
+|---|---|
+| **เครื่อง Mac** | macOS รุ่นไหนก็ได้ (Apple Silicon หรือ Intel ก็ใช้ได้) |
+| **Node.js LTS** | โปรแกรมรัน JavaScript ที่จำเป็นต้องมี (มาพร้อมกับ **npm**) |
+| **อินเทอร์เน็ต** | ใช้สำหรับดาวน์โหลดและติดตั้งโปรแกรมผ่าน npm รวมถึงใช้เชื่อมต่อไปยัง gateway |
+| **token จากเจ้าของ** | ค่าที่เจ้าของ gateway ออกให้ไว้สำหรับเข้าใช้งาน ต้องขอจากเจ้าของเท่านั้น ห้ามแชร์ให้ใคร |
+
+### ติดตั้ง Node.js LTS
+
+ถ้ายังไม่มี Node.js มี 2 วิธี:
+
+1. **ดาวน์โหลดจากเว็บไซต์** — เปิด https://nodejs.org แล้วดาวน์โหลดตัวที่เป็น **LTS** ล่าสุด (เป็นเวอร์ชันที่แนะนำ คือตัวที่หน้าเว็บชูให้ใหญ่ๆ) แล้วติดตั้งตามขั้นตอนของตัวติดตั้ง macOS
+2. **ใช้ Homebrew** — ถ้าเคยติดตั้ง Homebrew ไว้แล้ว (โปรแกรมช่วยจัดการแพ็กเกจบน Mac) ก็เปิด Terminal แล้วพิมพ์:
+
+   ```bash
+   brew install node
+   ```
+
+> ⚠️ **สำคัญ:** หลังติดตั้ง Node.js เสร็จ ต้อง **เปิดหน้าต่าง Terminal ใหม่** เสมอ แล้วค่อยทำขั้นตอนต่อไป เพราะหน้าต่าง Terminal ที่เปิดค้างอยู่จะยังอ่านค่าโปรแกรมใหม่ไม่พบ
+
+---
+
+## ขั้นตอนที่ 1 ดาวน์โหลดไฟล์
+
+มี 2 วิธี เลือกเอาแบบที่ถนัด:
+
+**วิธี A — ดาวน์โหลดเป็น ZIP (ง่ายสำหรับมือใหม่):**
+1. เปิด https://github.com/thaigqsoft/claude-9arm ในเว็บเบราว์เซอร์
+2. กดปุ่มเขียว **Code** (มุมขวาบน)
+3. เลือก **Download ZIP**
+4. แตกไฟล์ ZIP ออกมา (คลิกสองครั้ง หรือคลิกขวาแล้วเลือก "Extract")
+5. **จำที่อยู่ของโฟลเดอร์ที่แตกออกมาไว้** เช่น `ดาวน์โหลด/claude-9arm-main`
+
+**วิธี B — ใช้ git (สำหรับคนที่เคยใช้อยู่แล้ว):**
+```bash
+git clone https://github.com/thaigqsoft/claude-9arm.git
+```
+
+### เปิด Terminal แล้วเข้าไปในโฟลเดอร์
+
+ต้องเปิด Terminal แล้ว **cd** (ย่อมาจาก change directory แปลว่าเข้าไปในโฟลเดอร์) ให้อยู่ภายในโฟลเดอร์ที่ดาวน์โหลดมา **ก่อน** รันคำสั่งติดตั้งทุกขั้นตอน
+
+วิธีง่ายที่สุดสำหรับคนไม่ชิน Terminal:
+1. เปิดแอป **Terminal** (หาได้ใน Applications > Utilities หรือค้นจาก Spotlight ด้วยคำว่า "Terminal")
+2. พิมพ์ `cd ` (มีเว้นวรรคตามหลัง d ด้วยนะ)
+3. แล้ว**ลากโฟลเดอร์**ที่แตกไฟล์ไว้จาก Finder (หน้าต่างแสดงไฟล์ของ Mac) **มาวาง**ในหน้าต่าง Terminal แล้วกด **Enter**
+
+คุณจะเห็นที่อยู่โฟลเดอร์ปรากฏขึ้นหลังคำว่า `cd ` จากนั้นถึงจะไปขั้นตอนต่อไปได้
+
+---
+
+## ขั้นตอนที่ 2 รันตัวติดตั้ง
+
+ที่หน้าต่าง Terminal ที่เปิดอยู่ในโฟลเดอร์ claude-9arm แล้ว พิมพ์คำสั่งต่อไปนี้วิธีใดวิธีหนึ่ง:
+
+**วิธี A — ผ่าน bash โดยตรง (แนะนำ):**
 ```bash
 bash install-claude-9arm-mac.sh
 ```
 
-### วิธี B — ให้สิทธิ์ execute แล้วรัน
+**วิธี B — ให้สิทธิ์ execute แล้วรัน:**
 ```bash
 chmod +x install-claude-9arm-mac.sh
 ./install-claude-9arm-mac.sh
 ```
 
-สิ่งที่สคริปต์ทำ:
-1. ตรวจว่า `node` + `npm` มีหรือไม่ (ถ้าไม่มี จะบอกวิธีติดตั้ง Node.js LTS และจบการทำงาน — ไม่ติดตั้งเงียบๆ)
-2. ถ้ายังไม่มี `claude` จะติดตั้ง Claude Code ผ่าน npm (`@anthropic-ai/claude-code`)
-3. สร้างโฟลเดอร์ `~/.claude-9arm`
-4. ให้กรอก **gateway token** (เก็บไว้ใน `~/.claude-9arm/token` แบบไม่ขึ้นบรรทัดใหม่)
-5. เขียน wrapper `claude-9arm.sh` + symlink `claude-9arm` ลงใน `~/.claude-9arm/bin`
-6. เพิ่ม `~/.claude-9arm/bin` เข้า PATH ใน `.zshrc` / `.bash_profile` และสรุปการใช้งาน
+### สคริปต์ตัวติดตั้งทำอะไรบ้าง (ไล่ทีละข้อ)
+
+ระหว่างที่สคริปต์ทำงาน มันจะทำสิ่งเหล่านี้ตามลำดับ:
+
+1. **ตรวจว่า node + npm มีหรือไม่** — ถ้ายังไม่มี จะแสดงวิธีติดตั้ง Node.js LTS และหยุดทำงาน (มันจะไม่ติดตั้งให้เงียบๆ โดยที่คุณไม่รู้ตัว)
+2. **ติดตั้ง Claude Code ผ่าน npm** — ถ้ายังไม่มีคำสั่ง `claude` บนเครื่อง จะติดตั้งผ่าน npm เอง (แพ็กเกจชื่อ `@anthropic-ai/claude-code`)
+3. **สร้างโฟลเดอร์ `~/.claude-9arm`** — โฟลเดอร์เก็บการตั้งค่าทั้งหมด (เครื่องหมาย `~` แปลว่าบ้าน (home folder) ของผู้ใช้)
+4. **ให้กรอก token** — สคริปต์จะถามให้คุณวาง **gateway token** (token ที่ขอจากเจ้าของ) แล้วเก็บไว้ในไฟล์ `~/.claude-9arm/token` (การกรอกจะไม่แสดงตัวอักษรบนจอ เพื่อความปลอดภัย)
+5. **เขียน wrapper `claude-9arm.sh`** — ไฟล์ตัวรันหลักไว้ใน `~/.claude-9arm/` และสร้าง **symlink (ทางลัด) ชื่อ `claude-9arm`** ไว้ใน `~/.claude-9arm/bin` เพื่อให้พิมพ์ `claude-9arm` ได้จากที่ไหนก็ได้
+6. **เพิ่ม PATH อัตโนมัติ** — เพิ่ม `~/.claude-9arm/bin` ลงใน `.zshrc` หรือ `.bash_profile` ให้อัตโนมัติ แล้วสรุปวิธีการใช้งานให้ดู
+
+> สคริปต์นี้ **รันซ้ำได้ปลอดภัย** (เรียกว่า idempotent — รันกี่ครั้งก็ได้ ไม่พัง ไม่ซ้ำซ้อน) ถ้าพลาดหรืออยากทำใหม่ รันใหม่ได้เลย
 
 ---
 
-## 2) Token มาจากไหน
+## ขั้นตอนที่ 3 เรื่อง PATH
 
-Token เป็นค่าที่ **เจ้าของ (owner) เป็นผู้ออกให้** — เป็นหัวข้อเดียวกับที่ใช้กับ gateway `9arm`
+ข่าวดีคือ **ตัวติดตั้งเพิ่ม PATH ให้อัตโนมัติแล้ว** คุณไม่ต้องทำอะไรเพิ่ม แค่ **เปิดหน้าต่าง Terminal ใหม่** (ปิดหน้าต่างเดิมแล้วเปิดใหม่ หรือกด Cmd+N) แล้วคำสั่ง `claude-9arm` ก็จะใช้งานได้เลย — เพราะหน้าต่าง Terminal ที่เปิดค้างอยู่จะยังใช้ค่า PATH เก่า
 
-- เก็บไว้ที่: `~/.claude-9arm/token`
-- ห้ามแชร์ token นี้ให้ใคร
-- อยากรีเซ็ต token → รัน installer อีกครั้งด้วย `--prompt-token`
+ถ้าอยากเพิ่ม PATH เองด้วยมือเพื่อเป็นทางสำรอง (เช่น ใช้ shell แบบพิเศษที่สคริปต์อ่านไม่เจอ) พิมพ์:
+```bash
+echo 'export PATH="$PATH:$HOME/.claude-9arm/bin"' >> ~/.zshrc
+```
+แล้วเปิด Terminal ใหม่
+
+---
+
+## ขั้นตอนที่ 4 วิธีใช้
+
+เปิดหน้าต่าง Terminal ใหม่ แล้วพิมพ์คำว่า `claude-9arm` ตามด้วยคำถามในเครื่องหมายคำพูด ตัวอย่าง:
+
+```bash
+claude-9arm "สรุปให้ฟังว่าวันนี้ต้องทำอะไรบ้าง"
+```
+
+```bash
+claude-9arm "เขียนโปรแกรม Python คิดเลขง่ายๆ ให้หน่อย"
+```
+
+```bash
+claude-9arm "อธิบายวิธีใช้ฟีเจอร์ของ iPhone ให้เข้าใจง่ายๆ"
+```
+
+ทุกครั้งที่พิมพ์ ระบบจะถามไปยัง Claude Code ซึ่งวิ่งผ่าน gateway ของ 9Arm แล้วตอบกลับมาให้ใน Terminal
+
+---
+
+## เช็คว่าใช้ได้จริงไหม
+
+เพื่อให้แน่ใจว่าเชื่อมต่อกับ gateway สำเร็จ ให้รันคำสั่ง health check:
+
+```bash
+claude-9arm -HealthCheck
+```
+
+มันจะถาม AI ว่า `What is 1+1?` แล้วถ้าไม่ได้คำตอบที่มีเลข **2** จะรายงานว่า **FAILED**
+
+> ⚠️ **โปรดสังเกต:** flag นี้ใช้ตัวใหญ่แบบนี้เป๊ะๆ เหมือนกับฝั่ง Windows — คือ `-HealthCheck` (ขีดตั้ง (-) ตัวเดียว ตามด้วย Health และ Check ตัวใหญ่ H กับ C) **ไม่ใช่** `--health-check` (ขีดคู่แบบนั้นไม่ถูกนะ)
+
+> หมายเหตุ: health check ถูกปิดเป็นค่าเริ่มต้นเพื่อประหยัดโทเค็นของคุณ จะรันต่อเมื่อส่ง `-HealthCheck` เท่านั้น และถ้าอยาก**ข้าม** health check แม้ว่าจะส่ง `-HealthCheck` ก็ให้ตั้งตัวแปร:
+> ```bash
+> export CLAUDE_9ARM_SKIP_CHECK=1
+> ```
+
+---
+
+## เรื่องโมเดล (AI ตัวที่ใช้ตอบ)
+
+claude-9arm ถูกตั้งค่าให้ใช้โมเดล **`deepseek-v4-flash-0731`** เสมอ — เลือกโมเดลอื่นไม่ได้จากตัวนี้
+
+ถ้าอยากใช้โมเดล **`qwen3.8-27b-fp8`** ให้ใช้ agent ตัวอื่นแทน เช่น opencode, Qwen Code, OpenClaw หรือ Hermes (ดูหัวข้อ "อยากใช้ AI agent ตัวอื่น" ข้างล่าง) — พวกนั้นยังใช้ token ตัวเดียวกันได้
+
+---
+
+## รีเซ็ต token
+
+อยากเปลี่ยนหรือกรอก token ใหม่ ให้รันตัวติดตั้งอีกครั้งพร้อม flag `--prompt-token`:
 
 ```bash
 bash install-claude-9arm-mac.sh --prompt-token
 ```
 
----
-
-## 3) เพิ่ม bin เข้า PATH
-
-สคริปต์ติดตั้งจะเพิ่ม `export PATH="$PATH:$HOME/.claude-9arm/bin"` ลงใน `.zshrc` / `.bash_profile`
-โดยอัตโนมัติ (เฉพาะไฟล์ที่มีอยู่; ถ้าไม่มีทั้งคู่จะสร้าง `.zshrc`)
-
-แล้ว **เปิด terminal ใหม่** — window ที่เปิดอยู่ในขณะนั้นจะยังใช้ PATH เก่า
-
-ถ้าอยากเพิ่มเอง (กรณีที่ใช้ shell แปลกๆ):
-```bash
-echo 'export PATH="$PATH:$HOME/.claude-9arm/bin"' >> ~/.zshrc
-# หรือ ~/.bash_profile แล้วเปิด terminal ใหม่
-```
+ระบบจะให้กรอก token ใหม่แทนของเก่า (ทุกขั้นตอนอื่นไม่ต้องทำใหม่ เพราะมันแค่ทับ token)
 
 ---
 
-## 4) วิธีใช้งาน
-
-```bash
-claude-9arm "คำถามของคุณ"
-```
-
-ตัวอย่าง:
-```bash
-claude-9arm "สรุปให้ฟังว่าวันนี้ต้องทำอะไรบ้าง"
-claude-9arm "เขียนโปรแกรม Python คิดเลขง่ายๆ ให้หน่อย"
-```
-
-ทดสอบว่าต่อ gateway สำเร็จ (health check):
-```bash
-claude-9arm -HealthCheck
-```
-จะถาม Claude ว่า `What is 1+1?` และถ้าไม่ได้คำตอบที่มีเลข `2` จะรายงานว่าล้มเหลว
-
-> หมายเหตุ: health check ถูกปิดเป็นค่าเริ่มต้นเพื่อประหยัด token ของเพื่อน — จะรันก็ต่อเมื่อส่ง `-HealthCheck`.
-> ถ้าต้องการข้าม health check แม้ส่ง `-HealthCheck` ให้ตั้ง `CLAUDE_9ARM_SKIP_CHECK=1`
-
----
-
-## 5) Troubleshooting
+## ถ้าติดปัญหา
 
 | อาการ | สาเหตุ / วิธีแก้ |
 |---|---|
-| `ไม่พบ token file` | ยังไม่ได้กรอก token — รัน installer อีกครั้งให้ครบ |
-| `command not found: claude-9arm` | ยังไม่ได้เพิ่ม bin เข้า PATH หรือยังไม่เปิด terminal ใหม่ — ดูข้อ 3 |
-| `command not found: node` | ยังไม่ได้ติดตั้ง Node.js — ติดตั้งด้วย `brew install node` แล้วเปิด terminal ใหม่ |
-| `npm install ล้มเหลว / network error` | ตรวจอินเทอร์เน็ต / proxy แล้วลองใหม่; ถ้าติดตั้ง node ใหม่ให้เปิด terminal ใหม่ |
-| `ไม่พบคำสั่ง claude` | ติดตั้ง Claude Code ไม่สำเร็จ — รัน installer อีกครั้ง (หรือ `npm install -g @anthropic-ai/claude-code` เอง) |
-| health check FAILED | gateway ตาย / token ผิด — ลองใหม่ หรือติดต่อเจ้าของเรื่อง token |
+| `ไม่พบ token file` | ยังไม่ได้กรอก token — รันตัวติดตั้งอีกรอบให้กรอกให้ครบ |
+| `command not found: claude-9arm` | ยังไม่ได้เพิ่ม PATH หรือยังไม่ได้เปิด Terminal ใหม่ — ดูหัวข้อ "ขั้นตอนที่ 3 เรื่อง PATH" แล้วเปิด Terminal ใหม่ |
+| `command not found: node` | ยังไม่ได้ติดตั้ง Node.js — ติดตั้งด้วย `brew install node` หรือจาก https://nodejs.org แล้ว**เปิด Terminal ใหม่** |
+| `npm install ล้มเหลว / network error` | ตรวจอินเทอร์เน็ต / proxy แล้วลองใหม่; ถ้าเพิ่งติดตั้ง Node.js ใหม่ อย่าลืมเปิด Terminal ใหม่ก่อน |
+| `ไม่พบคำสั่ง claude` | ติดตั้ง Claude Code ไม่สำเร็จ — รันตัวติดตั้งอีกรอบ (หรือติดตั้งเองด้วย `npm install -g @anthropic-ai/claude-code`) |
+| `health check FAILED` | gateway ตายชั่วคราว หรือ token ผิด — ลองใหม่ หรือติดต่อเจ้าของเรื่อง token |
+| macOS เตือนว่า "เปิดไฟล์นี้จากอินเทอร์เน็ต" | macOS (Gatekeeper) เตือนเพราะไฟล์เพิ่งโหลดมาจากเน็ต — คลิกขวาที่ไฟล์แล้วเลือก **Open** เพื่อปลดล็อก หรือรันผ่าน `bash install-claude-9arm-mac.sh` ก็ข้ามข้อความนี้ได้ เพราะ macOS จะเตือนเฉพาะตอนเรียกไฟล์โดยตรงเท่านั้น |
 
 ---
 
-## เชื่อมต่อกับ agent อื่น (ใช้ token เดียวกัน)
+## อยากใช้ AI agent ตัวอื่น
 
-มีสคริปต์เชื่อม coding agent ตัวอื่นเข้ากับ gateway 9arm เดียวกัน (ใช้ token ตัวเดียวกับ claude-9arm). ดู README ของแต่ละตัว:
+บน gateway 9arm เดียวกัน (ใช้ token อันเดียวกับ claude-9arm) ยังมีสคริปต์เชื่อมต่อ **coding agent** ตัวอื่นๆ ให้ด้วย ทุกตัวมีตัวติดตั้งเวอร์ชัน macOS (ไฟล์ลงท้ายด้วย `-mac.sh`) มีหน้าที่ต่างกัน:
 
-- **opencode** → `install-opencode-9arm-mac.sh` — [README-opencode.md](README-opencode.md)
-- **Qwen Code** → `install-qwen-code-9arm-mac.sh` — [README-qwen-code.md](README-qwen-code.md)
-- **OpenClaw** → `install-openclaw-9arm-mac.sh` — [README-openclaw.md](README-openclaw.md)
-- **Hermes** → `install-hermes-9arm-mac.sh` — [README-hermes.md](README-hermes.md)
+| Agent | macOS installer | มันคืออะไร | อ่านวิธีใช้ |
+|---|---|---|---|
+| **opencode** | `install-opencode-9arm-mac.sh` | coding agent อเนกประสงค์ที่ทำงานใน Terminal | [README-opencode.md](README-opencode.md) |
+| **Qwen Code** | `install-qwen-code-9arm-mac.sh` | ใช้โมเดลตระกูล Qwen ผ่าน gateway (ใช้โมเดล qwen3.8-27b-fp8 ได้) | [README-qwen-code.md](README-qwen-code.md) |
+| **OpenClaw** | `install-openclaw-9arm-mac.sh` | agent สำหรับจัดการงานอัตโนมัติ | [README-openclaw.md](README-openclaw.md) |
+| **Hermes** | `install-hermes-9arm-mac.sh` | coding agent ในตระกูล Hermes | [README-hermes.md](README-hermes.md) |
 
-ทุกตัวต้องการ token จาก `install-claude-9arm-mac.sh` ก่อน แล้วค่อยเลือกติดตั้ง agent ที่เพื่อนใช้จริง
+> **ข้อควรจำ:** ทุกตัวต้องติดตั้ง `install-claude-9arm-mac.sh` **ก่อนเสมอ** เพราะตัวนั้นคือตัวสร้างไฟล์ token ที่ agent อื่นเอาไปใช้ร่วมกัน จากนั้นค่อยเลือกติดตั้ง agent ที่ต้องการใช้จริง
 
 ---
 
@@ -134,13 +213,13 @@ claude-9arm -HealthCheck
 
 | ไฟล์ | ตำแหน่ง | หน้าที่ |
 |---|---|---|
-| `install-claude-9arm-mac.sh` | โปรเจกต์นี้ | ติดตั้งครั้งเดียว (idempotent) |
+| `install-claude-9arm-mac.sh` | โปรเจกต์นี้ | ตัวติดตั้งหลัก (รันซ้ำได้ปลอดภัย) |
 | `claude-9arm-mac.sh` | โปรเจกต์นี้ | standalone runtime wrapper (ต้นฉบับที่ installer ก็อปไป) |
-| `claude-9arm.sh` | `~/.claude-9arm/` | runtime wrapper (เขียนโดย installer) |
-| `claude-9arm` | `~/.claude-9arm/bin/` | symlink ไปยัง wrapper สำหรับเรียก `claude-9arm` |
-| `install-opencode-9arm-mac.sh` | โปรเจกต์นี้ | เชื่อม opencode เข้า gateway |
-| `install-qwen-code-9arm-mac.sh` | โปรเจกต์นี้ | เชื่อม Qwen Code เข้า gateway |
-| `install-openclaw-9arm-mac.sh` | โปรเจกต์นี้ | เชื่อม OpenClaw เข้า gateway |
-| `install-hermes-9arm-mac.sh` | โปรเจกต์นี้ | เชื่อม Hermes เข้า gateway |
-| `token` | `~/.claude-9arm/` | gateway token |
-| `CLAUDE.md` | `~/.claude-9arm/` | (ถ้ามี) system prompt เพิ่มเติม |
+| `claude-9arm.sh` | `~/.claude-9arm/` | runtime wrapper (เขียนโดยตัวติดตั้ง) |
+| `claude-9arm` | `~/.claude-9arm/bin/` | symlink (ทางลัด) สำหรับเรียกคำสั่ง `claude-9arm` |
+| `token` | `~/.claude-9arm/` | ไฟล์เก็บ gateway token (สร้างโดยตัวติดตั้ง) |
+| `CLAUDE.md` | `~/.claude-9arm/` | (ถ้ามี) ไฟล์ system prompt เพิ่มเติม |
+| `install-opencode-9arm-mac.sh` | โปรเจกต์นี้ | ตัวติดตั้ง opencode เข้า gateway |
+| `install-qwen-code-9arm-mac.sh` | โปรเจกต์นี้ | ตัวติดตั้ง Qwen Code เข้า gateway |
+| `install-openclaw-9arm-mac.sh` | โปรเจกต์นี้ | ตัวติดตั้ง OpenClaw เข้า gateway |
+| `install-hermes-9arm-mac.sh` | โปรเจกต์นี้ | ตัวติดตั้ง Hermes เข้า gateway |

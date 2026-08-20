@@ -1,7 +1,6 @@
-# claude-9arm — Windows PowerShell wrapper
+# claude-9arm
 
-ตัวห่อ (wrapper) สำหรับเรียก Claude Code ผ่าน gateway `https://gateway.9arm.co` บน Windows
-พอร์ตมาจากเวอร์ชัน Linux (bash) — ใช้ model เดียวกันและแยก profile/config แยกเป็นของตัวเอง
+ชุดสคริปต์นี้ทำให้เครื่องของคุณ (คอมพิวเตอร์ Windows) เรียกใช้ **Claude Code** และ AI agent ตัวอื่นๆ ผ่าน AI gateway ของ **9Arm** ได้ โดยที่คุณ**ไม่ต้องสมัครหรือจ่ายค่า API เอง** เพราะใช้ token ที่เจ้าของ gateway ออกให้ เพียงติดตั้งครั้งเดียว แล้วเปิดเทอร์มินัลพิมพ์ `claude-9arm` คุยกับ AI ได้เลย
 
 ---
 
@@ -13,110 +12,189 @@
 
 ---
 
-## ความต้องการของระบบ (Requirements)
+## เลือกทางเดินให้ถูกต้อง
 
-- **Windows 10 / 11**
-- **Node.js LTS** (มาพร้อม `npm`) — ถ้ายังไม่มี ระหว่าง setup จะมีคำแนะนำให้ติดตั้ง
-- อินเทอร์เน็ต (สำหรับติดตั้ง Claude Code ผ่าน npm และคุยกับ gateway)
+| ระบบปฏิบัติการที่คุณใช้ | อ่านต่อที่ |
+|---|---|
+| **Windows** (10 หรือ 11) | อ่านไฟล์นี้ต่อ ได้เลย |
+| **macOS** | ไปที่ [README-mac.md](README-mac.md) |
 
 ---
 
-## 1) ติดตั้ง Installer
+## โปรแกรมนี้ทำอะไรได้
 
-รันสคริปต์ `install-claude-9arm.ps1` หนึ่งครั้งด้วยวิธีใดวิธีหนึ่ง:
+`claude-9arm` คือ**คำสั่ง**ที่คุณพิมพ์ในเทอร์มินัล (หน้าต่างของ Windows ที่เรียกว่า PowerShell) แล้วคุยกับ AI ได้เลย เหมาะกับทั้งคนที่เขียนโปรแกรมเป็นและคนที่เพิ่งเริ่มต้น โดยช่วยคุณได้หลายอย่าง เช่น
 
-### วิธี A — ผ่าน command line (แนะนำ)
+- **เขียนโค้ด** — บอกเป็นภาษาคนว่า "อยากได้โปรแกรมแบบนี้" AI จะเขียนโค้ดให้
+- **ตอบคำถาม** — ถามอะไรก็ได้ เหมือนถามเพื่อนที่เก่งๆ
+- **อ่านและแก้ไฟล์ในเครื่อง** — ให้ AI เปิดไฟล์ในคอมของคุณมาอ่าน แล้วแก้ไขหรือสรุปให้ฟัง
+
+พูดง่ายๆ คือ พิมพ์คำถามแล้วกด Enter AI ก็จะพิมพ์คำตอบกลับมาในหน้าต่างเดียวกัน โดยที่คุณไม่ต้องสมัครบัญชีหรือจ่ายเงินให้ผู้ให้บริการ AI เพียงแค่มี token ที่เจ้าของออกให้เท่านั้น
+
+---
+
+## ต้องเตรียมอะไรก่อน
+
+ก่อนเริ่มติดตั้ง ขอให้แน่ใจว่าคุณมีครบ 4 อย่างนี้
+
+1. **Windows 10 หรือ 11** — ระบบปฏิบัติการของเครื่องคุณ
+2. **Node.js LTS** — โปรแกรมที่ทำให้สคริปต์ทำงานได้ ดาวน์โหลดฟรีได้ที่ <https://nodejs.org> (เลือกตัวที่เป็น LTS ด้านซ้ายมือ) เมื่อติดตั้งเสร็จแล้ว **ต้องปิดและเปิดเทอร์มินัลใหม่ทุกครั้ง** ไม่งั้นโปรแกรมยังหาคำสั่ง `node` ไม่เจอ
+3. **อินเทอร์เน็ต** — ใช้สำหรับดาวน์โหลดไฟล์และติดต่อกับ gateway
+4. **token ที่ขอจากเจ้าของ gateway** — เป็นรหัสลับส่วนตัวสำหรับยืนยันตัวคุณ ขอจาก **9Arm** ได้ และ**ห้ามแชร์ต่อเด็ดขาด**
+
+---
+
+## ขั้นตอนที่ 1 — ดาวน์โหลดไฟล์
+
+เลือกทำวิธีใดวิธีหนึ่งเพื่อให้ได้ไฟล์โปรเจกต์มาอยู่ในเครื่องก่อน
+
+**วิธี A — ดาวน์โหลดเป็น ZIP (ไม่ต้องติดตั้งอะไรเพิ่ม)**
+1. เปิดเว็บเบราว์เซอร์ไปที่ <https://github.com/thaigqsoft/claude-9arm>
+2. กดปุ่มสีเขียวที่เขียนว่า **Code** (อยู่ด้านบนขวาของรายชื่อไฟล์)
+3. เลือก **Download ZIP**
+4. เมื่อดาวน์โหลดเสร็จ ให้**แตกไฟล์ ZIP** (คลิกขวาที่ไฟล์ → Extract All) ออกมา
+5. **จำที่อยู่ของโฟลเดอร์ที่แตกไฟล์ไว้** ว่าอยู่ตรงไหนของเครื่อง
+
+**วิธี B — ใช้ git (สำหรับคนที่เคยใช้ git)**
+เปิดเทอร์มินัลแล้วพิมพ์คำสั่งนี้:
+
+```bash
+git clone https://github.com/thaigqsoft/claude-9arm.git
+```
+
+### เปิด PowerShell ตรงโฟลเดอร์ที่ดาวน์โหลดมา
+
+ไม่ว่าจะเลือกวิธี A หรือวิธี B ก็ต้องทำขั้นตอนนี้ก่อนรันคำสั่งติดตั้งเสมอ:
+- เปิด **File Explorer** แล้วเข้าไปในโฟลเดอร์ที่แตกไฟล์ไว้
+- คลิกที่ช่อง **address bar** (แถบที่อยู่ด้านบนสุดของหน้าต่าง)
+- พิมพ์คำว่า `powershell` แล้วกด **Enter** — จะมีหน้าต่าง PowerShell เปิดขึ้นมาตรงโฟลเดอร์นั้นให้เลย
+
+ถ้าอยากเช็คว่าอยู่ถูกโฟลเดอร์ไหม ให้พิมพ์คำสั่ง `dir` แล้วต้องเห็นไฟล์ชื่อ `install-claude-9arm.ps1` อยู่ในรายการ
+
+---
+
+## ขั้นตอนที่ 2 — รันตัวติดตั้ง
+
+ในหน้าต่าง PowerShell ที่เปิดขึ้นมา (ตรงโฟลเดอร์ของโปรเจกต์) ให้พิมพ์คำสั่งนี้แล้วกด Enter:
+
 ```powershell
 powershell -NoProfile -ExecutionPolicy Bypass -File .\install-claude-9arm.ps1
 ```
 
-### วิธี B — คลิกขวา
-คลิกขวาที่ `install-claude-9arm.ps1` → **Run with PowerShell**
-(ถ้าโดน Execution Policy บล็อก ให้ใช้วิธี A)
+**ทำไมต้องมี `-ExecutionPolicy Bypass`?** เพราะ Windows บล็อกสคริปต์ที่ดาวน์โหลดมาจากอินเทอร์เน็ตโดยค่าเริ่มต้น (เพื่อกันไวรัส) การใส่ `-ExecutionPolicy Bypass` เป็นการบอก Windows ให้อนุญาตรันสคริปต์ไฟล์นี้ได้เฉพาะครั้งเดียว
 
-สิ่งที่สคริปต์ทำ:
-1. ตรวจว่า `node` + `npm` มีหรือไม่ (ถ้าไม่มี จะบอกวิธีติดตั้ง Node.js LTS และจบการทำงาน — ไม่ติดตั้งเงียบๆ)
-2. ถ้ายังไม่มี `claude` จะติดตั้ง Claude Code ผ่าน npm (`@anthropic-ai/claude-code`)
-3. สร้างโฟลเดอร์ `%USERPROFILE%\.claude-9arm`
-4. ให้กรอก **gateway token** (เก็บไว้ใน `%USERPROFILE%\.claude-9arm\token`)
-5. เขียน wrapper `claude-9arm.ps1` + shim `claude-9arm.cmd`
-6. พิมพ์คำสั่งเพิ่ม PATH และสรุปการใช้งาน
+เมื่อรันแล้วสคริปต์จะทำตามลำดับขั้นดังนี้:
 
----
+1. **ตรวจว่า `node` + `npm` มีในเครื่องหรือยัง** — ถ้ายังไม่มี จะแจ้งวิธีติดตั้ง Node.js LTS และ**จบการทำงานทันที** (ไม่ติดตั้งให้เงียบๆ)
+2. **ติดตั้ง Claude Code ผ่าน npm** (`@anthropic-ai/claude-code`) — ถ้ายังไม่เคยติดตั้ง
+3. **สร้างโฟลเดอร์** `%USERPROFILE%\.claude-9arm` ไว้เก็บไฟล์ของโปรแกรม
+4. **ให้กรอก gateway token** — พิมพ์ token ที่ขอจากเจ้าของ แล้วระบบจะเก็บไว้ในไฟล์ `%USERPROFILE%\.claude-9arm\token`
+5. **เขียน wrapper `claude-9arm.ps1`** กับ **shim `claude-9arm.cmd`** — เป็นไฟล์ตัวเรียกใช้คำสั่ง
+6. **พิมพ์คำสั่งเพิ่ม PATH และสรุปการใช้งาน** ให้บนจอ
 
-## 2) Token มาจากไหน
-
-Token เป็นค่าที่ **เจ้าของ (owner) เป็นผู้ออกให้** — เป็นหัวข้อเดียวกับที่ใช้กับ gateway `9arm`
-
-- เก็บไว้ที่: `%USERPROFILE%\.claude-9arm\token`
-- ห้ามแชร์ token นี้ให้ใคร
-- อยากรีเซ็ต token → รัน installer อีกครั้งด้วย `-PromptToken`
-
-```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -File .\install-claude-9arm.ps1 -PromptToken
-```
+สคริปต์นี้รันซ้ำได้ปลอดภัย (เรียกว่า idempotent) หมายความว่าถ้าต้องการรันใหม่อีกทีหลังก็ไม่เสียหายอะไร
 
 ---
 
-## 3) เพิ่ม bin เข้า PATH
+## ขั้นตอนที่ 3 — เพิ่ม PATH
 
-เพื่อให้พิมพ์ `claude-9arm` ได้จากที่ไหนก็ได้ ให้รันคำสั่งนี้ (ใช้กับ terminal ใหม่เท่านั้น):
+เมื่อติดตั้งเสร็จ ให้รันคำสั่งนี้ใน PowerShell **หนึ่งครั้ง**:
 
 ```bat
 setx PATH "%PATH%;%USERPROFILE%\.claude-9arm\bin"
 ```
 
-แล้ว **เปิด terminal (PowerShell) ใหม่** — window ที่เปิดอยู่ในขณะนั้นจะยังใช้ PATH เก่า
+แล้ว**ต้องเปิดหน้าต่าง PowerShell ใหม่เสมอ** เพราะหน้าต่างที่เปิดอยู่ตอนนี้จะยังใช้ PATH เก่าอยู่
+
+**PATH คืออะไร? อธิบายง่ายๆ** PATH คือรายชื่อโฟลเดอร์ที่ Windows ใช้ค้นหาคำสั่ง คล้ายๆ สมุดโทรศัพท์ — เมื่อคุณพิมพ์คำว่า `claude-9arm` Windows จะไล่ค้นหาในโฟลเดอร์ที่อยู่ใน PATH ว่ามีคำสั่งนี้อยู่หรือเปล่า ถ้ายังไม่ได้เพิ่ม `%USERPROFILE%\.claude-9arm\bin` เข้าไป Windows ก็หาคำสั่งไม่พบ (หรือที่เรียกว่า "ไม่ใช่คำสั่งที่รู้จัก") เมื่อเพิ่มแล้ว Windows จะรู้จักคำสั่ง `claude-9arm` ได้จากทุกที่
 
 ---
 
-## 4) วิธีใช้งาน
+## ขั้นตอนที่ 4 — วิธีใช้งาน
+
+เปิด PowerShell (หน้าต่างใหม่ตามขั้นตอนที่ 3) แล้วพิมพ์:
 
 ```powershell
-claude-9arm "คำถามของคุณ"
+claude-9arm "คำถามหรือคำสั่งของคุณ"
 ```
 
-ตัวอย่าง:
+ตัวอย่างคำสั่งภาษาไทย:
+
 ```powershell
-claude-9arm "สรุปให้ฟังว่าวันนี้ต้องทำอะไรบ้าง"
-claude-9arm "เขียนโปรแกรม Python คิดเลขง่ายๆ ให้หน่อย"
+claude-9arm "สรุปให้ฟังหน่อยว่าวันนี้ผมต้องทำอะไรบ้าง"
+claude-9arm "ช่วยเขียนโปรแกรม Python คิดเลขง่ายๆ ให้หน่อย"
+claude-9arm "อ่านไฟล์ชื่อ note.txt ในโฟลเดอร์นี้ แล้วสรุปให้ฟัง"
 ```
 
-ทดสอบว่าต่อ gateway สำเร็จ (health check):
+พิมพ์เสร็จกด Enter รอสักครู่ AI ก็จะตอบกลับมาในหน้าต่างเดียวกัน
+
+---
+
+## เช็คว่าใช้ได้จริงไหม
+
+ลองรันคำสั่งนี้เพื่อทดสอบว่าเครื่องเชื่อมต่อกับ gateway สำเร็จหรือไม่:
+
 ```powershell
 claude-9arm -HealthCheck
 ```
-จะถาม Claude ว่า `What is 1+1?` และถ้าไม่ได้คำตอบที่มีเลข `2` จะรายงานว่าล้มเหลว
 
-> หมายเหตุ: health check ถูกปิดเป็นค่าเริ่มต้นเพื่อประหยัด token ของเพื่อน — จะรันก็ต่อเมื่อส่ง `-HealthCheck`.
+คำสั่งนี้จะถาม AI ว่า `What is 1+1?` ถ้าได้คำตอบที่ไม่ใช่เลข `2` จะแจ้งว่า **FAILED**
+
+> หมายเหตุ: health check ถูกปิดเป็นค่าเริ่มต้นเพื่อประหยัดโทเค็นของคุณ — จะรันก็ต่อเมื่อส่ง `-HealthCheck` อย่างเดียว
 
 ---
 
-## 5) Troubleshooting
+## เรื่องโมเดล (Model)
+
+`claude-9arm` ถูกตั้งค่าให้ใช้โมเดล **`deepseek-v4-flash-0731`** เสมอ — เลือกโมเดลอื่นไม่ได้ เพราะตัวสคริปต์ล็อกไว้แล้วเพื่อความง่าย
+
+ถ้าอยากใช้โมเดล `qwen3.8-27b-fp8` แทน ให้ติดตั้ง **agent ตัวอื่น** (เช่น opencode / Qwen Code / OpenClaw / Hermes) โดยอ่านหัวข้อ "อยากใช้ AI agent ตัวอื่น" ด้านล่าง
+
+---
+
+## รีเซ็ต token
+
+ถ้าอยากเปลี่ยน token เป็นค่าที่เจ้าของออกให้ใหม่ ให้รันตัวติดตั้งอีกครั้งพร้อมกับ switch `-PromptToken`:
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File .\install-claude-9arm.ps1 -PromptToken
+```
+
+คำสั่งนี้จะให้คุณกรอก token ตัวใหม่ และเขียนทับลงในไฟล์ token เดิม
+
+นอกจากนี้ยังมี switch อีกตัวคือ `-SkipInstall` ใช้เมื่อคุณติดตั้ง Claude Code ไว้เองแล้ว (ผ่าน npm) และไม่อยากให้สคริปต์ติดตั้งซ้ำอีกครั้ง เช่น:
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File .\install-claude-9arm.ps1 -SkipInstall
+```
+
+---
+
+## ถ้าติดปัญหา
 
 | อาการ | สาเหตุ / วิธีแก้ |
 |---|---|
-| `ไม่พบ token file` | ยังไม่ได้กรอก token — รัน installer อีกครั้งให้ครบ |
-| `not recognized... ไม่ใช่คำสั่งภายในหรือภายนอก` | ยังไม่ได้เพิ่ม bin เข้า PATH หรือยังไม่เปิด terminal ใหม่ — ดูข้อ 3 |
-| `ไม่สามารถโหลดไฟล์... ไม่อนุญาตให้เรียกใช้สคริปต์...` | ExecutionPolicy — ใช้วิธี A (`-ExecutionPolicy Bypass -File`) |
-| `npm install ล้มเหลว / network error` | ตรวจอินเทอร์เน็ต / proxy แล้วลองใหม่; ถ้าติดตั้ง node ใหม่ให้เปิด terminal ใหม่ |
-| `ไม่พบคำสั่ง claude` | ติดตั้ง Claude Code ไม่สำเร็จ — รัน installer อีกครั้ง (หรือ `npm install -g @anthropic-ai/claude-code` เอง) |
-| health check FAILED | gateway ตาย / token ผิด / ยังไม่ได้เพิ่ม PATH — ลองใหม่ หรือติดต่อเจ้าของเรื่อง token |
+| ขึ้นว่า `ไม่พบ token file` | ยังไม่ได้กรอก token — รันตัวติดตั้ง (installer) อีกครั้งให้ครบทุกรอบ |
+| ขึ้นว่า `claude-9arm ไม่ใช่คำสั่งที่รู้จัก` (Not recognized) | ยังไม่ได้เพิ่ม bin เข้า PATH หรือยังไม่เปิด PowerShell ใหม่ — กลับไปทำขั้นตอนที่ 3 |
+| ขึ้นว่า `ไม่สามารถโหลดไฟล์... ไม่อนุญาตให้เรียกใช้สคริปต์...` | โดน Execution Policy บล็อก — ให้ใช้คำสั่งเต็มแบบวิธีที่อยู่ในขั้นตอนที่ 2 ที่มี `-ExecutionPolicy Bypass -File` |
+| ขึ้นว่า `npm install ล้มเหลว / network error` | ตรวจอินเทอร์เน็ต / proxy แล้วลองใหม่ ถ้าเพิ่งติดตั้ง Node.js ใหม่ต้องเปิดเทอร์มินัลใหม่ก่อน |
+| ขึ้นว่า `ไม่พบคำสั่ง claude` | ติดตั้ง Claude Code ไม่สำเร็จ — รันตัวติดตั้งอีกครั้ง หรือรัน `npm install -g @anthropic-ai/claude-code` เอง |
+| health check ขึ้น `FAILED` | gateway ตาย / token ผิด / ยังไม่ได้เพิ่ม PATH — ลองใหม่ หรือติดต่อเจ้าของเพื่อตรวจสอบ token |
 
 ---
 
-## เชื่อมต่อกับ agent อื่น (ใช้ token เดียวกัน)
+## อยากใช้ AI agent ตัวอื่น
 
-มีสคริปต์เชื่อม coding agent ตัวอื่นเข้ากับ gateway 9arm เดียวกัน (ใช้ token ตัวเดียวกับ claude-9arm):
+นอกจาก Claude Code แล้ว ยังมีสคริปต์เชื่อมต่อ **coding agent** ตัวอื่นเข้ากับ gateway 9arm เดียวกันได้อีกหลายตัว (ใช้ token ตัวเดียวกับ claude-9arm) โดย**ต้องติดตั้ง claude-9arm ก่อนเสมอ** เพราะตัวติดตั้งของ claude-9arm เป็นตัวสร้างไฟล์ token ที่ agent ตัวอื่นเอาไปใช้ร่วมกัน
 
-| Agent | Windows installer | macOS installer | README |
+| Agent | คืออะไร? | Windows installer | README |
 |---|---|---|---|
-| **opencode** | `install-opencode-9arm.ps1` | `install-opencode-9arm-mac.sh` | [README-opencode.md](README-opencode.md) |
-| **Qwen Code** | `install-qwen-code-9arm.ps1` | `install-qwen-code-9arm-mac.sh` | [README-qwen-code.md](README-qwen-code.md) |
-| **OpenClaw** | `install-openclaw-9arm.ps1` | `install-openclaw-9arm-mac.sh` | [README-openclaw.md](README-openclaw.md) |
-| **Hermes** | `install-hermes-9arm.ps1` | `install-hermes-9arm-mac.sh` | [README-hermes.md](README-hermes.md) |
+| **opencode** | AI coding agent ในเทอร์มินัล เลือกโมเดลได้อิสระ | `install-opencode-9arm.ps1` | [README-opencode.md](README-opencode.md) |
+| **Qwen Code** | agent สาย Qwen ของ Alibaba | `install-qwen-code-9arm.ps1` | [README-qwen-code.md](README-qwen-code.md) |
+| **OpenClaw** | agent โอเพนซอร์ส (Open source) | `install-openclaw-9arm.ps1` | [README-openclaw.md](README-openclaw.md) |
+| **Hermes** | agent จาก Nous Research | `install-hermes-9arm.ps1` | [README-hermes.md](README-hermes.md) |
 
-ทุกตัวต้องการ token จาก `install-claude-9arm.*` ก่อน แล้วค่อยเลือกติดตั้ง agent ที่เพื่อนใช้จริง
+ทุกตัวต้องใช้ token จากการติดตั้ง `install-claude-9arm.*` ก่อน แล้วค่อยเลือกติดตั้ง agent ที่อยากใช้จริง
 
 ---
 
@@ -124,12 +202,12 @@ claude-9arm -HealthCheck
 
 | ไฟล์ | ตำแหน่ง | หน้าที่ |
 |---|---|---|
-| `install-claude-9arm.ps1` | โปรเจกต์นี้ | ติดตั้งครั้งเดียว (idempotent) |
-| `claude-9arm.ps1` | `%USERPROFILE%\.claude-9arm\` | runtime wrapper (เขียนโดย installer) |
-| `claude-9arm.cmd` | `%USERPROFILE%\.claude-9arm\bin\` | shim สำหรับเรียก `claude-9arm` |
+| `install-claude-9arm.ps1` | โปรเจกต์นี้ | ตัวติดตั้ง (รันครั้งเดียว ปลอดภัยต่อการรันซ้ำ) |
+| `claude-9arm.ps1` | `%USERPROFILE%\.claude-9arm\` | runtime wrapper (เขียนโดยตัวติดตั้ง) |
+| `claude-9arm.cmd` | `%USERPROFILE%\.claude-9arm\bin\` | shim สำหรับเรียก `claude-9arm` จากทุกที่ |
 | `install-opencode-9arm.*` | โปรเจกต์นี้ | เชื่อม opencode เข้า gateway |
 | `install-qwen-code-9arm.*` | โปรเจกต์นี้ | เชื่อม Qwen Code เข้า gateway |
 | `install-openclaw-9arm.*` | โปรเจกต์นี้ | เชื่อม OpenClaw เข้า gateway |
 | `install-hermes-9arm.*` | โปรเจกต์นี้ | เชื่อม Hermes เข้า gateway |
-| `token` | `%USERPROFILE%\.claude-9arm\` | gateway token |
+| `token` | `%USERPROFILE%\.claude-9arm\` | gateway token (ส่วนตัว ห้ามแชร์) |
 | `CLAUDE.md` | `%USERPROFILE%\.claude-9arm\` | (ถ้ามี) system prompt เพิ่มเติม |

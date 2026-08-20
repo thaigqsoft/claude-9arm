@@ -1,64 +1,148 @@
-# OpenClaw → 9arm Gateway
+# เปิดใช้งาน OpenClaw ต่อกับ 9Arm Gateway
 
-เชื่อม Coding agent **OpenClaw** เข้ากับ gateway `https://gateway.9arm.co` ของ **9Arm** ผ่าน token ตัวเดียวกับ claude-9arm.
+ไฟล์ชุดนี้จะช่วยคนทั่วไปที่ไม่ได้เก่งคอมพิวเตอร์ให้เชื่อมต่อโปรแกรม AI coding agent ชื่อ **OpenClaw** เข้ากับเกตเวย์ (gateway) ของ **9Arm** ได้ด้วยตัวเอง ไม่ต้องแก้ไฟล์ตั้งค่าเองให้ปวดหัว แค่รันคำสั่งให้จบแล้วก็ใช้งานได้เลย
 
 > ### 🙏 ขอบคุณเจ้าชายไอทีแห่งประเทศไทย — 9Arm
-> ช่วย **กดติดตาม (Subscribe)** เป็นกำลังใจ & เชียร์ค่าโทเค็นให้ AI ต่อยอดได้เรื่อยๆ
+> สคริปต์ตัวนี้เชื่อมต่อกับ AI gateway ของ **9Arm (เจ้าชายไอทีแห่งประเทศไทย)**
+> ถ้าใช้งานแล้วถูกใจ ช่วย **กดติดตาม (Subscribe)** เป็นกำลังใจ & เชียร์ค่าโทเค็น (token) ที่ใช้เลี้ยง AI ให้เค้าได้ต่อยอดไปเรื่อยๆ
+>
 > 🔗 YouTube: <https://www.youtube.com/@9arm>
 
 ---
 
-## สิ่งที่ต้องมีก่อน
+## สิ่งนี้คืออะไร / เหมาะกับใคร
 
-- รัน `install-claude-9arm.ps1` (Windows) หรือ `install-claude-9arm-mac.sh` (macOS) ก่อน เพื่อสร้าง token ที่ `~/.claude-9arm/token`
-- มี OpenClaw — ติดตั้งจาก https://docs.openclaw.ai/install
+**OpenClaw** คือ AI coding agent (โปรแกรมช่วยเขียนโค้ด/ทำงานกับคอมพิวเตอร์) แบบโอเพนซอร์ส (ใช้ฟรี เปิดซอร์สให้ดูได้) ที่ควบคุมผ่านคำสั่งและแชตในเทอร์มินัลได้ เอกสารอย่างเป็นทางการอยู่ที่ <https://docs.openclaw.ai/install>
 
-## ติดตั้ง
-
-**Windows:**
-```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -File .\install-openclaw-9arm.ps1
-```
-
-**macOS:**
-```bash
-bash install-openclaw-9arm-mac.sh
-```
-
-สคริปต์จะเขียน provider `9arm` ลงใน `~/.openclaw/openclaw.json` (`models.providers.9arm`) ชี้ไปที่ `https://gateway.9arm.co/v1` (OpenAI-compatible) พร้อม token
-
-## วิธีใช้
-
-เลือก model ในรูปแบบ `provider/model`:
-
-- `9arm/qwen3.8-27b-fp8` — Qwen 3.8 27b FP8
-- `9arm/deepseek-v4-flash-0731` — DeepSeek V4 Flash 0731
-
-```bash
-openclaw "คำถามของคุณ"
-# แล้วเลือก /model -> 9arm/qwen3.8-27b-fp8
-```
-
-## Model ที่ใช้ได้
-
-| Model ID (provider/model) |
-|---|
-| `9arm/qwen3.8-27b-fp8` |
-| `9arm/deepseek-v4-flash-0731` |
+คู่มือนี้เหมาะกับคนที่ติดตั้ง claude-9arm ไว้แล้ว และอยากใช้ตัวช่วยอีกตัวอย่าง OpenClaw ต่อกับเกตเวย์ตัวเดียวกัน โดยใช้ token (รหัสประจำตัว) ร่วมกัน ไม่ต้องขอ token ใหม่
 
 ---
 
-## Troubleshooting
+## ต้องเตรียมอะไรก่อน
 
-| อาการ | วิธีแก้ |
-|---|---|
-| `ไม่พบ token file` | รัน installer ของ claude-9arm ก่อนเพื่อสร้าง token |
-| model หาย | เช็ค block `models.providers.9arm` ใน `~/.openclaw/openclaw.json` |
-| gateway เงียบ/ช้า | gateway อาจชั่วคราวลง — รอสักครู่แล้วลองใหม่ |
+1. **ต้องติดตั้ง claude-9arm ให้เสร็จก่อนเสมอ** เพราะตัวติดตั้งของ claude-9arm เป็นตัวสร้างไฟล์ token ที่ตัวอื่นๆ (รวมถึง OpenClaw) เอาไปใช้ร่วมกัน
+   - Windows: รัน `install-claude-9arm.ps1`
+   - macOS: รัน `install-claude-9arm-mac.sh`
+   - ถ้ายังไม่ได้ติดตั้ง ให้กลับไปทำตามคู่มือ claude-9arm ก่อน แล้วค่อยมาทำขั้นตอนนี้
+2. ต้องมี **Node.js LTS** (มาพร้อมกับ npm) ดาวน์โหลดได้ที่ <https://nodejs.org> บน macOS จะใช้ `brew install node` ก็ได้
+3. ถ้ายังไม่ได้ติดตั้งโปรแกรม OpenClaw ไม่ต้องกังวล สคริปต์นี้จะติดตั้งให้เองอัตโนมัติ
+
+---
+
+## ขั้นตอนที่ 1 ดาวน์โหลดไฟล์
+
+**วิธี A (แบบไม่ต้องใช้คำสั่ง) — ดาวน์โหลดเป็น ZIP:**
+1. เปิดเว็บ <https://github.com/thaigqsoft/claude-9arm>
+2. กดปุ่มเขียว "Code"
+3. กด "Download ZIP" แล้วรอให้ดาวน์โหลดเสร็จ
+4. แตกไฟล์ ZIP ออกมา (คลิกขวาที่ไฟล์ > "Extract All" บน Windows หรือดับเบิลคลิกแล้วแตกบน macOS)
+5. จำที่อยู่ของโฟลเดอร์ที่แตกไฟล์ไว้ให้ได้
+
+**วิธี B (แบบใช้ git สำหรับคนที่ใช้เป็น):**
+```
+git clone https://github.com/thaigqsoft/claude-9arm.git
+```
+
+**จากนั้นเปิดเทอร์มินัลแล้วเข้าไปในโฟลเดอร์นั้น** (ทำตามระบบของตัวเอง):
+
+- **Windows:** เปิด File Explorer เข้าไปที่โฟลเดอร์ที่แตกไฟล์ไว้ > คลิกที่ช่อง address bar ด้านบน > พิมพ์ `powershell` แล้วกด Enter (หน้าต่าง PowerShell จะเปิดขึ้นที่โฟลเดอร์นั้นให้ทันที)
+- **macOS:** เปิดแอป Terminal แล้วพิมพ์ `cd ` (มีเว้นวรรคด้วย) แล้วลากโฟลเดอร์จาก Finder มาวางในหน้าต่าง Terminal แล้วกด Enter
+
+---
+
+## ขั้นตอนที่ 2 ติดตั้ง
+
+รันคำสั่งติดตั้งตามระบบปฏิบัติการของตัวเอง (ต้องอยู่ในโฟลเดอร์ที่ดาวน์โหลดไฟล์มาแล้วเท่านั้น):
+
+**Windows (ใช้ PowerShell):**
+```
+powershell -NoProfile -ExecutionPolicy Bypass -File .\install-openclaw-9arm.ps1
+```
+
+**macOS (ใช้ Terminal):**
+```
+bash install-openclaw-9arm-mac.sh
+```
+
+> ถ้าติดตั้งโปรแกรม OpenClaw ไว้เองแล้ว และไม่อยากให้สคริปต์ติดตั้งซ้ำ ฝั่ง macOS ใส่ `--skip-install` ต่อท้ายได้แบบนี้:
+> ```
+> bash install-openclaw-9arm-mac.sh --skip-install
+> ```
+
+สิ่งที่คุณจะเห็นบนจอระหว่างการติดตั้ง (ไล่ไปตามนี้):
+1. ข้อความ `=== OpenClaw -> 9arm gateway setup ===` แสดงว่าสคริปต์เริ่มทำงาน
+2. ตรวจพบว่า OpenClaw ยังไม่ติดตั้ง สคริปต์จะติดตั้งให้อัตโนมัติ (หรือถ้าพบว่าใช้ `--skip-install` จะข้ามไป)
+3. ข้อความ `เขียน provider '9arm' ลง config: ...openclaw.json` แสดงว่าขั้นตอนการตั้งค่าเสร็จสมบูรณ์
+4. ข้อความ `ติดตั้งเรียบร้อย` ที่ท้ายสุด แปลว่าสำเร็จเรียบร้อย
+
+---
+
+## ขั้นตอนที่ 3 ใช้งานจริง
+
+สคริปต์จะเขียน provider (ผู้ให้บริการโมเดล) ชื่อ **9arm** ลงในไฟล์ตั้งค่า `~/.openclaw/openclaw.json` ที่ตำแหน่ง `models.providers.9arm` โดยใช้ api แบบ **openai-completions** ชี้ไปที่ `https://gateway.9arm.co/v1` พร้อมกับใส่ token ให้เรียบร้อย
+
+**วิธีใช้งาน:**
+1. เปิดโปรแกรม OpenClaw ด้วยคำสั่ง:
+   ```
+   openclaw
+   ```
+2. พิมพ์คำสั่ง `/model` เพื่อเลือกโมเดล (เลือกแบบเขียนชื่อเต็มว่า `provider/model`):
+   - `9arm/qwen3.8-27b-fp8` — Qwen 3.8 27b FP8
+   - `9arm/deepseek-v4-flash-0731` — DeepSeek V4 Flash 0731
+3. พิมพ์คำถามหรือสั่งงานได้เลย เช่น:
+   ```
+   openclaw "ช่วยเขียนโค้ด Python หาเลขเฉพาะที่มากกว่า 100"
+   ```
+
+### ตารางโมเดลที่ใช้ได้
+
+| Model ID (ชื่อเต็ม provider/model) | ชื่อโมเดล |
+|---|
+| `9arm/qwen3.8-27b-fp8` | Qwen 3.8 27b FP8 |
+| `9arm/deepseek-v4-flash-0731` | DeepSeek V4 Flash 0731 |
+
+---
+
+## เช็คว่าใช้ได้จริงไหม
+
+1. เปิดโปรแกรม OpenClaw ด้วยคำสั่ง `openclaw`
+2. พิมพ์ `/model` แล้วเลือก `9arm/qwen3.8-27b-fp8` หรือ `9arm/deepseek-v4-flash-0731`
+3. ถามคำถามง่ายๆ เช่น `1+1 เท่ากับเท่าไหร่`
+4. ถ้า AI ตอบกลับมาได้แสดงว่าเชื่อมต่อกับเกตเวย์สำเร็จ
+
+---
+
+## ถ้าติดปัญหา
+
+| อาการ | สาเหตุ | วิธีแก้ |
+|---|---|---|
+| มีข้อความ "ไม่พบ token file" | ยังไม่ได้รันตัวติดตั้ง claude-9arm มาก่อน | กลับไปติดตั้ง claude-9arm ให้เสร็จก่อน แล้วค่อยรันสคริปต์ใหม่ |
+| เลือก model `9arm/...` ใน `/model` แล้วไม่เจอ | ไฟล์ตั้งค่าถูกแก้หรือลบไป | รันสคริปต์ติดตั้งของ OpenClaw อีกครั้งเพื่อเขียนค่าให้ใหม่ (รันซ้ำได้ปลอดภัย) |
+| พิมพ์คำสั่ง `openclaw` แล้วขึ้น "not found" | ตัวโปรแกรม OpenClaw ยังไม่ถูกติดตั้ง | รันสคริปต์ติดตั้งใหม่โดยไม่ใส่ `--skip-install` (ฝั่ง macOS) หรือติดตั้งเองจาก <https://docs.openclaw.ai/install> |
+| เปิดโปรแกรมได้ แต่ตอบช้า/เงียบ | เกตเวย์อาจชั่วคราวช้าหรือล่ม | รอสักครู่แล้วลองถามใหม่ค่อยๆ |
+| เปิดโปรแกรมได้แต่ตอบว่าไม่มีสิทธิ์ | ไฟล์ token ผิด/หมดอายุ | ขอ token ใหม่จากเจ้าของเกตเวย์ และติดตั้ง claude-9arm อีกครั้งเพื่อเขียน token ใหม่ |
+| ไม่แน่ใจว่า token อยู่ไฟล์ไหน | เผลอลบไฟล์ token ออก | token เก็บที่ `%USERPROFILE%\.claude-9arm\token` (Windows) หรือ `~/.claude-9arm/token` (macOS) — ถ้าไม่มี ให้รันตัวติดตั้ง claude-9arm ใหม่ |
+
+---
+
+## คำถามที่พบบ่อย
+
+**ต้องขอ token ใหม่สำหรับ OpenClaw ไหม**
+ไม่ต้อง ไม่ต้องแชร์ token ต่อ OpenClaw ใช้ token เดียวกับ claude-9arm ที่เกตเวย์ออกให้แล้ว
+
+**ถ้ารันสคริปต์ซ้ำหลายครั้งจะเป็นอะไรไหม**
+ไม่เป็นไร สคริปต์ออกแบบให้รันซ้ำได้ปลอดภัย (idempotent) ค่าที่เขียนทับเป็นชุดเดียวกันเสมอ
+
+**เลือกโมเดลอื่นที่ไม่ใช่ 2 ตัวนี้ได้ไหม**
+ได้เฉพาะโมเดลในตารางด้านบนเท่านั้น เพราะเป็นโมเดลที่เกตเวย์ของ 9Arm เปิดให้ใช้
+
+---
 
 ## ไฟล์ที่เกี่ยวข้อง
 
 | ไฟล์ | ตำแหน่ง | หน้าที่ |
 |---|---|---|
-| `openclaw.json` | `~/.openclaw/openclaw.json` | config ของ OpenClaw (เขียนโดย installer) |
-| `token` | `~/.claude-9arm/token` | gateway token (ของ claude-9arm) |
+| `install-openclaw-9arm.ps1` | โฟลเดอร์ที่ดาวน์โหลดมา (ต้นทาง) | สคริปต์ติดตั้ง/ตั้งค่า OpenClaw สำหรับ Windows |
+| `install-openclaw-9arm-mac.sh` | โฟลเดอร์ที่ดาวน์โหลดมา (ต้นทาง) | สคริปต์ติดตั้ง/ตั้งค่า OpenClaw สำหรับ macOS |
+| `openclaw.json` | `~/.openclaw/openclaw.json` | ไฟล์ตั้งค่าหลักของ OpenClaw (สคริปต์เขียน provider 9arm ลงที่ `models.providers.9arm`) |
+| `token` | `%USERPROFILE%\.claude-9arm\token` (Windows) / `~/.claude-9arm/token` (macOS) | token ของเกตเวย์ที่ใช้ร่วมกัน (สร้างโดยตัวติดตั้ง claude-9arm) |
